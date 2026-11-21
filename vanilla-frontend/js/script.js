@@ -18,62 +18,6 @@ const labels = [
   'Announcements', 'Assistance'
 ];
 
-const schedules = [
-  {
-    barangay: 'Barangay Maligaya',
-    date: 'May 15, 2025',
-    day: 'Thursday',
-    time: '8:00 AM – 12:00 PM',
-    venue: 'Maligaya Covered Court',
-    group: 'Surnames A–L'
-  },
-  {
-    barangay: 'Barangay Pag-asa',
-    date: 'May 16, 2025',
-    day: 'Friday',
-    time: '1:00 PM – 5:00 PM',
-    venue: 'Pag-asa Multipurpose Hall',
-    group: 'All listed beneficiaries'
-  },
-  {
-    barangay: 'Barangay San Isidro',
-    date: 'May 19, 2025',
-    day: 'Monday',
-    time: '8:00 AM – 3:00 PM',
-    venue: 'San Isidro Civic Center',
-    group: 'Surnames M–Z'
-  },
-  {
-    barangay: 'Barangay Mabini',
-    date: 'May 21, 2025',
-    day: 'Wednesday',
-    time: '9:00 AM – 2:00 PM',
-    venue: 'Mabini Elementary School Gym',
-    group: 'All listed beneficiaries'
-  }
-];
-
-const announcements = [
-  {
-    type: 'Schedule update',
-    date: 'May 8, 2025',
-    title: 'Barangay Mabini venue confirmed',
-    text: 'The sample distribution venue is the Mabini Elementary School Gym. Please use the east gate entrance.'
-  },
-  {
-    type: 'Reminder',
-    date: 'May 6, 2025',
-    title: 'Bring original documents',
-    text: 'Prepare your original valid ID and reference slip. Photocopies may be requested at the validation desk.'
-  },
-  {
-    type: 'Advisory',
-    date: 'May 2, 2025',
-    title: 'No fee is required',
-    text: 'This fictional program does not collect processing fees. Report anyone asking for payment to the help desk.'
-  }
-];
-
 const requirements = [
   [
     'Original valid ID',
@@ -155,14 +99,6 @@ const checklist = items => `
   </ul>
 `;
 
-const announcement = a => `
-  <article class="announcement-item card">
-    <p class="announcement-meta">${a.type} · ${a.date}</p>
-    <h2>${a.title}</h2>
-    <p class="muted">${a.text}</p>
-  </article>
-`;
-
 // HOME PAGE
 
 function homePage() {
@@ -238,13 +174,9 @@ function homePage() {
           ${link('announcements', 'View all →', 'text-link')}
         </div>
 
-        ${announcements.slice(0, 2).map(a => `
-          <article>
-            <p class="announcement-meta">${a.type} · ${a.date}</p>
-            <h3>${a.title}</h3>
-            <p>${a.text}</p>
-          </article>
-        `).join('')}
+        <div id="home-announcements">
+            <p class="muted">Loading latest notices...</p>
+        </div>
       </div>
 
       <aside class="help-card">
@@ -258,6 +190,55 @@ function homePage() {
       </aside>
     </section>
   `;
+}
+
+
+async function bindHomeAnnouncements() {
+  const container = document.getElementById('home-announcements');
+
+  try {
+    const items = await API.getAnnouncements();
+
+    if (!container.isConnected) return;
+
+    container.replaceChildren();
+
+    if (!items.length) {
+      const message = document.createElement('p');
+      message.className = 'muted';
+      message.textContent = 'No announcements available.';
+      container.appendChild(message);
+      return;
+    }
+
+    items.slice(0, 2).forEach(item => {
+      const article = document.createElement('article');
+
+      const meta = document.createElement('p');
+      meta.className = 'announcement-meta';
+      meta.textContent = `${item.type} · ${item.date}`;
+
+      const title = document.createElement('h3');
+      title.textContent = item.title;
+
+      const description = document.createElement('p');
+      description.textContent = item.text;
+
+      article.append(meta, title, description);
+      container.appendChild(article);
+    });
+  } catch (error) {
+    console.error('Homepage announcements failed:', error);
+
+    if (!container.isConnected) return;
+
+    container.replaceChildren();
+
+    const message = document.createElement('p');
+    message.className = 'muted';
+    message.textContent = 'Latest notices are temporarily unavailable.';
+    container.appendChild(message);
+  }
 }
 
 // SCHEDULES PAGE
@@ -355,32 +336,64 @@ function schedulesPage() {
   `;
 }
 
+
 function bindSchedules() {
   const input = document.getElementById('barangay');
   const clear = document.getElementById('clear-search');
   const results = document.getElementById('schedule-results');
   const count = document.getElementById('schedule-count');
 
-  function update() {
-    const term = input.value.trim().toLowerCase();
+  let requestId = 0;
 
-    const matches = schedules.filter(s =>
-      s.barangay.toLowerCase().includes(term)
-    );
-
-    count.textContent =
-      `Showing ${matches.length} of ${schedules.length} sample schedules`;
+  async function update() {
+    const currentRequest = ++requestId;
+    const term = input.value.trim();
 
     clear.hidden = !input.value;
+    count.textContent = 'Loading sample schedules...';
+    results.innerHTML = '';
 
-    results.innerHTML = matches.length
-      ? matches.map(scheduleCard).join('')
-      : `
+    try {
+      const matches = await API.getSchedules(term);
+
+      // Ignore an outdated response or a page that was removed.
+      if (currentRequest !== requestId || !results.isConnected) {
+        return;
+      }
+
+      const allSchedules = await API.getSchedules();
+
+      if (currentRequest !== requestId || !results.isConnected) {
+        return;
+      }
+
+      count.textContent =
+        `Showing ${matches.length} of ${allSchedules.length} sample schedules`;
+
+      results.innerHTML = matches.length
+        ? matches.map(scheduleCard).join('')
+        : `
+          <div class="empty-state" style="grid-column:1/-1">
+            <h2>No sample schedule found</h2>
+            <p>Check the spelling or try another barangay name.</p>
+          </div>
+        `;
+    } catch (error) {
+      if (currentRequest !== requestId || !results.isConnected) {
+        return;
+      }
+
+      console.error('Schedule loading failed:', error);
+
+      count.textContent = 'Unable to load schedules.';
+
+      results.innerHTML = `
         <div class="empty-state" style="grid-column:1/-1">
-          <h2>No sample schedule found</h2>
-          <p>Check the spelling or try another barangay name.</p>
+          <h2>Schedules temporarily unavailable</h2>
+          <p>Please try again later.</p>
         </div>
       `;
+    }
   }
 
   input.addEventListener('input', update);
@@ -393,6 +406,7 @@ function bindSchedules() {
 
   update();
 }
+
 
 // INDIVIDUAL LOOKUP PAGE
 
@@ -482,15 +496,17 @@ const lookupPlaceholder = `
   </div>
 `;
 
+
 function bindLookup() {
   const form = document.getElementById('lookup-form');
   const result = document.getElementById('lookup-result');
   const name = document.getElementById('full-name');
   const code = document.getElementById('reference');
+  const submitButton = form.querySelector('button[type="submit"]');
 
   result.innerHTML = lookupPlaceholder;
 
-  form.addEventListener('submit', e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
 
     const n = name.value.trim();
@@ -508,57 +524,95 @@ function bindLookup() {
       return;
     }
 
-    if (
-      n.toLowerCase() === 'maria santos' &&
-      c.toUpperCase() === 'HBD-2025-0142'
-    ) {
+    submitButton.disabled = true;
+    submitButton.textContent = 'Searching...';
+
+    result.innerHTML = `
+      <div class="card result-card">
+        <p class="muted">Searching sample record...</p>
+      </div>
+    `;
+
+    try {
+      const beneficiary = await API.lookupBeneficiary(n, c);
+
+      if (!result.isConnected) return;
+
+      if (beneficiary) {
+        const schedules = await API.getSchedules();
+        if (!result.isConnected) return;
+
+        const schedule = schedules.find(
+          s => s.id === beneficiary.scheduleId
+        );
+
+        // Display only the fixed fictional sample record.
+        // Do not insert untrusted backend fields into innerHTML.
+        result.innerHTML = `
+          <div class="card result-card">
+            <p class="eyebrow">✓ Sample record found</p>
+            <h2>Maria Santos</h2>
+
+            <dl>
+              <div>
+                <dt>Reference code</dt>
+                <dd>HBD-2025-0142</dd>
+              </div>
+
+              <div>
+                <dt>Barangay</dt>
+                <dd>Barangay Maligaya</dd>
+              </div>
+
+              <div>
+                <dt>Sample schedule</dt>
+                <dd>${schedule
+                  ? `${schedule.date} · ${schedule.time.split(' – ')[0]}`
+                  : 'Schedule unavailable'}</dd>
+              </div>
+
+              <div>
+                <dt>Status</dt>
+                <dd>
+                  <span class="pill">FOR INFORMATION ONLY</span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        `;
+      } else {
+        result.innerHTML = `
+          <div class="card"
+               style="background:#F7F4FB;border-color:#D8CCE9">
+            <h2>No matching sample record</h2>
+            <p>
+              Check the name and reference code.
+              For this demo, use <strong>Maria Santos</strong>
+              and <strong>HBD-2025-0142</strong>.
+            </p>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error('Lookup failed:', error);
+
+      if (!result.isConnected) return;
+
       result.innerHTML = `
-        <div class="card result-card">
-          <p class="eyebrow">✓ Sample record found</p>
-          <h2>Maria Santos</h2>
-
-          <dl>
-            <div>
-              <dt>Reference code</dt>
-              <dd>HBD-2025-0142</dd>
-            </div>
-
-            <div>
-              <dt>Barangay</dt>
-              <dd>Barangay Maligaya</dd>
-            </div>
-
-            <div>
-              <dt>Sample schedule</dt>
-              <dd>May 15, 2025 · 8:00 AM</dd>
-            </div>
-
-            <div>
-              <dt>Status</dt>
-              <dd>
-                <span class="pill">FOR INFORMATION ONLY</span>
-              </dd>
-            </div>
-          </dl>
-        </div>
-      `;
-    } else {
-      result.innerHTML = `
-        <div
-          class="card"
-          style="background:#F7F4FB;border-color:#D8CCE9"
-        >
-          <h2>No matching sample record</h2>
-          <p>
-            Check the name and reference code.
-            For this demo, use <strong>Maria Santos</strong>
-            and <strong>HBD-2025-0142</strong>.
+        <div class="card">
+          <h2>Lookup temporarily unavailable</h2>
+          <p class="muted">
+            Please try again later.
           </p>
         </div>
       `;
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = 'Search sample record';
     }
   });
 }
+
 
 // REQUIREMENTS PAGE
 
@@ -773,6 +827,7 @@ function waitingPage() {
 
 // ANNOUNCEMENTS PAGE
 
+
 function announcementsPage() {
   return `
     ${intro(
@@ -781,7 +836,9 @@ function announcementsPage() {
       'Review recent fictional updates before visiting a distribution site.'
     )}
 
-    ${announcements.map(announcement).join('')}
+    <div id="announcements-list">
+      <p class="muted">Loading announcements...</p>
+    </div>
 
     ${notice(
       'All names, dates, locations, and announcements on this website are fictional sample data for a BSIT-3 project.'
@@ -876,6 +933,60 @@ function assistancePage() {
   `;
 }
 
+
+async function bindAnnouncements() {
+  const container = document.getElementById('announcements-list');
+
+  try {
+    const items = await API.getAnnouncements();
+
+    if (!container.isConnected) return;
+
+    if (!items.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <h2>No announcements available</h2>
+          <p>Please check again later.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Build cards safely without inserting API text as HTML.
+    container.replaceChildren();
+
+    items.forEach(item => {
+      const article = document.createElement('article');
+      article.className = 'announcement-item card';
+
+      const meta = document.createElement('p');
+      meta.className = 'announcement-meta';
+      meta.textContent = `${item.type} · ${item.date}`;
+
+      const title = document.createElement('h2');
+      title.textContent = item.title;
+
+      const description = document.createElement('p');
+      description.className = 'muted';
+      description.textContent = item.text;
+
+      article.append(meta, title, description);
+      container.appendChild(article);
+    });
+  } catch (error) {
+    console.error('Announcements loading failed:', error);
+
+    if (!container.isConnected) return;
+
+    container.innerHTML = `
+      <div class="empty-state">
+        <h2>Announcements temporarily unavailable</h2>
+        <p>Please try again later.</p>
+      </div>
+    `;
+  }
+}
+
 // PAGE NAVIGATION
 
 const renderers = {
@@ -938,6 +1049,14 @@ function render() {
 
   if (page === 'lookup') {
     bindLookup();
+  }
+
+  if (page === 'announcements') {
+    bindAnnouncements();
+  }
+
+  if (page === 'home') {
+    bindHomeAnnouncements();
   }
 
   window.scrollTo({
