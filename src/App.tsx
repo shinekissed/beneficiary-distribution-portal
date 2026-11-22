@@ -1,4 +1,4 @@
-import { FormEvent, ReactNode, useEffect, useState } from 'react'
+import { FormEvent, ReactNode, useEffect, useRef, useState } from 'react'
 import heroWelcome from './assets/illustrations/hero-welcome.webp'
 import scheduleSearch from './assets/illustrations/schedule-search.webp'
 import requirementsChecklist from './assets/illustrations/requirements-checklist.webp'
@@ -10,6 +10,9 @@ import processVenue from './assets/illustrations/process-venue.webp'
 import processDocuments from './assets/illustrations/process-documents.webp'
 import processGuidance from './assets/illustrations/process-guidance.webp'
 import processComplete from './assets/illustrations/process-complete.webp'
+import { getAnnouncements, getSchedules, lookupBeneficiary } from './api/api'
+import type { Announcement, BeneficiaryLookupResult, Schedule } from './types/api'
+import { beneficiaryLookup } from './data/mockData'
 
 type Page =
   | 'home'
@@ -87,19 +90,6 @@ const navItems: { id: Page; label: string; icon: IconName }[] = [
   { id: 'assistance', label: 'Assistance', icon: 'help' },
 ]
 
-const schedules = [
-  { barangay: 'Barangay Maligaya', date: 'May 15, 2025', day: 'Thursday', time: '8:00 AM – 12:00 PM', venue: 'Maligaya Covered Court', group: 'Surnames A–L' },
-  { barangay: 'Barangay Pag-asa', date: 'May 16, 2025', day: 'Friday', time: '1:00 PM – 5:00 PM', venue: 'Pag-asa Multipurpose Hall', group: 'All listed beneficiaries' },
-  { barangay: 'Barangay San Isidro', date: 'May 19, 2025', day: 'Monday', time: '8:00 AM – 3:00 PM', venue: 'San Isidro Civic Center', group: 'Surnames M–Z' },
-  { barangay: 'Barangay Mabini', date: 'May 21, 2025', day: 'Wednesday', time: '9:00 AM – 2:00 PM', venue: 'Mabini Elementary School Gym', group: 'All listed beneficiaries' },
-]
-
-const announcements = [
-  { type: 'Schedule update', date: 'May 8, 2025', title: 'Barangay Mabini venue confirmed', text: 'The sample distribution venue is the Mabini Elementary School Gym. Please use the east gate entrance.' },
-  { type: 'Reminder', date: 'May 6, 2025', title: 'Bring original documents', text: 'Prepare your original valid ID and reference slip. Photocopies may be requested at the validation desk.' },
-  { type: 'Advisory', date: 'May 2, 2025', title: 'No fee is required', text: 'This fictional program does not collect processing fees. Report anyone asking for payment to the help desk.' },
-]
-
 function PageIntro({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <div className="mb-8">
@@ -121,6 +111,29 @@ function Notice({ children }: { children: ReactNode }) {
 
 function HomePage({ goTo }: { goTo: (page: Page) => void }) {
   const quickLinks = navItems.slice(1, 7)
+  const [announcementItems, setAnnouncementItems] = useState<Announcement[]>([])
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true)
+  const [announcementsError, setAnnouncementsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+
+    getAnnouncements()
+      .then((items) => {
+        if (active) setAnnouncementItems(items)
+      })
+      .catch(() => {
+        if (active) setAnnouncementsError('Announcements are temporarily unavailable. Please try again later.')
+      })
+      .finally(() => {
+        if (active) setAnnouncementsLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <>
       <section className="overflow-hidden rounded-3xl bg-[#54358B] text-white shadow-xl shadow-[#352054]/10">
@@ -167,7 +180,10 @@ function HomePage({ goTo }: { goTo: (page: Page) => void }) {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex items-center justify-between gap-4"><div><p className="text-sm font-bold uppercase tracking-widest text-[#6F4FA8]">Latest notices</p><h2 className="mt-1 text-2xl font-bold text-slate-950">Announcements</h2></div><button onClick={() => goTo('announcements')} className="hidden font-bold text-[#54358B] hover:underline sm:block">View all</button></div>
           <div className="mt-5 divide-y divide-slate-200">
-            {announcements.slice(0, 2).map((item) => <article key={item.title} className="py-4 first:pt-0 last:pb-0"><div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6F4FA8]"><span>{item.type}</span><span className="h-1 w-1 rounded-full bg-slate-300" /><span className="text-slate-500">{item.date}</span></div><h3 className="mt-2 font-bold text-slate-900">{item.title}</h3><p className="mt-1 text-sm leading-6 text-slate-600">{item.text}</p></article>)}
+            {announcementsLoading && <p className="py-4 text-sm text-slate-600">Loading announcements…</p>}
+            {announcementsError && <p className="py-4 text-sm text-red-700">{announcementsError}</p>}
+            {!announcementsLoading && !announcementsError && !announcementItems.length && <p className="py-4 text-sm text-slate-600">No announcements available.</p>}
+            {!announcementsLoading && !announcementsError && announcementItems.slice(0, 2).map((item) => <article key={item.title} className="py-4 first:pt-0 last:pb-0"><div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6F4FA8]"><span>{item.type}</span><span className="h-1 w-1 rounded-full bg-slate-300" /><span className="text-slate-500">{item.date}</span></div><h3 className="mt-2 font-bold text-slate-900">{item.title}</h3><p className="mt-1 text-sm leading-6 text-slate-600">{item.text}</p></article>)}
           </div>
         </div>
         <div className="rounded-2xl bg-[#E3ECE5] p-6 sm:p-8">
@@ -183,7 +199,30 @@ function HomePage({ goTo }: { goTo: (page: Page) => void }) {
 
 function SchedulesPage() {
   const [query, setQuery] = useState('')
-  const filtered = schedules.filter((item) => item.barangay.toLowerCase().includes(query.trim().toLowerCase()))
+  const [scheduleItems, setScheduleItems] = useState<Schedule[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+
+    getSchedules()
+      .then((items) => {
+        if (active) setScheduleItems(items)
+      })
+      .catch(() => {
+        if (active) setError('Schedules are temporarily unavailable. Please try again later.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const filtered = scheduleItems.filter((item) => item.barangay.toLowerCase().includes(query.trim().toLowerCase()))
   return (
     <>
       <PageIntro eyebrow="Distribution calendar" title="Search schedules by barangay" description="Enter a barangay name to view fictional distribution dates, times, and venues for this prototype." />
@@ -194,12 +233,12 @@ function SchedulesPage() {
             <div className="relative flex-1"><Icon name="search" className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input id="barangay" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Try “Maligaya” or “Mabini”" className="field pl-12" /></div>
             {query && <button onClick={() => setQuery('')} className="min-h-12 rounded-xl border border-slate-300 px-5 font-bold text-slate-700 hover:bg-slate-50">Clear search</button>}
           </div>
-          <p className="mt-3 text-sm text-slate-500">Showing {filtered.length} of {schedules.length} sample schedules</p>
+          <p className="mt-3 text-sm text-slate-500">Showing {filtered.length} of {scheduleItems.length} sample schedules</p>
         </div>
         <img src={scheduleSearch} alt="Calendar, location pin, and search tools for finding a barangay schedule" className="hidden h-full min-h-44 w-full object-cover md:block" />
       </div>
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        {filtered.map((item) => (
+        {!loading && !error && filtered.map((item) => (
           <article key={item.barangay} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4"><div><span className="rounded-full bg-[#8BAF93] px-3 py-1 text-xs font-bold text-[#26382A]">SCHEDULED</span><h2 className="mt-3 text-xl font-bold text-slate-950">{item.barangay}</h2></div><span className="grid h-11 w-11 place-items-center rounded-xl bg-[#EDE7F6] text-[#54358B]"><Icon name="calendar" /></span></div>
             <dl className="mt-5 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
@@ -211,7 +250,10 @@ function SchedulesPage() {
           </article>
         ))}
       </div>
-      {!filtered.length && <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="search" className="mx-auto h-8 w-8 text-slate-400" /><h2 className="mt-3 font-bold text-slate-900">No sample schedule found</h2><p className="mt-1 text-sm text-slate-600">Check the spelling or try another barangay name.</p></div>}
+      {loading && <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-10 text-center"><p className="font-bold text-slate-900">Loading schedules…</p><p className="mt-1 text-sm text-slate-600">Please wait while the sample schedules load.</p></div>}
+      {error && <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-10 text-center"><h2 className="font-bold text-red-900">Unable to load schedules</h2><p className="mt-1 text-sm text-red-800">{error}</p></div>}
+      {!loading && !error && !scheduleItems.length && <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="calendar" className="mx-auto h-8 w-8 text-slate-400" /><h2 className="mt-3 font-bold text-slate-900">No schedules available</h2><p className="mt-1 text-sm text-slate-600">There are no sample schedules to display.</p></div>}
+      {!loading && !error && scheduleItems.length > 0 && !filtered.length && <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="search" className="mx-auto h-8 w-8 text-slate-400" /><h2 className="mt-3 font-bold text-slate-900">No sample schedule found</h2><p className="mt-1 text-sm text-slate-600">Check the spelling or try another barangay name.</p></div>}
       <div className="mt-6"><Notice>Schedules shown here are fictional and for demonstration only. Always confirm official information with your local office.</Notice></div>
     </>
   )
@@ -220,12 +262,40 @@ function SchedulesPage() {
 function LookupPage() {
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  const [result, setResult] = useState<'idle' | 'found' | 'notfound' | 'invalid'>('idle')
-  function submit(e: FormEvent) {
+  const [result, setResult] = useState<'idle' | 'loading' | 'found' | 'notfound' | 'invalid' | 'error'>('idle')
+  const [lookupResult, setLookupResult] = useState<BeneficiaryLookupResult>(null)
+  const activeRef = useRef(true)
+  const requestIdRef = useRef(0)
+
+  useEffect(() => {
+    activeRef.current = true
+
+    return () => {
+      activeRef.current = false
+    }
+  }, [])
+
+  async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !code.trim()) return setResult('invalid')
-    const isMatch = name.trim().toLowerCase() === 'maria santos' && code.trim().toUpperCase() === 'HBD-2025-0142'
-    setResult(isMatch ? 'found' : 'notfound')
+    const requestId = ++requestIdRef.current
+
+    if (!name.trim() || !code.trim()) {
+      setLookupResult(null)
+      return setResult('invalid')
+    }
+
+    setLookupResult(null)
+    setResult('loading')
+
+    try {
+      const record = await lookupBeneficiary({ name: name.trim(), referenceCode: code.trim() })
+      if (!activeRef.current || requestId !== requestIdRef.current) return
+      setLookupResult(record)
+      setResult(record ? 'found' : 'notfound')
+    } catch {
+      if (!activeRef.current || requestId !== requestIdRef.current) return
+      setResult('error')
+    }
   }
   return (
     <>
@@ -233,7 +303,7 @@ function LookupPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_.8fr]">
         <form onSubmit={submit} noValidate className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-xl font-bold text-slate-950">Enter your information</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">Sample: <strong>Maria Santos</strong> and <strong>HBD-2025-0142</strong></p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Sample: <strong>{beneficiaryLookup.name}</strong> and <strong>{beneficiaryLookup.referenceCode}</strong></p>
           <div className="mt-6 space-y-5">
             <div><label htmlFor="full-name" className="text-sm font-bold text-slate-800">Full name <span className="text-red-600">*</span></label><input id="full-name" value={name} onChange={(e) => setName(e.target.value)} className="field mt-2" placeholder="e.g., Maria Santos" autoComplete="name" aria-describedby={result === 'invalid' && !name.trim() ? 'name-error' : undefined} />{result === 'invalid' && !name.trim() && <p id="name-error" className="mt-2 text-sm font-semibold text-red-700">Please enter your full name.</p>}</div>
             <div><label htmlFor="reference" className="text-sm font-bold text-slate-800">Reference code <span className="text-red-600">*</span></label><input id="reference" value={code} onChange={(e) => setCode(e.target.value)} className="field mt-2 uppercase" placeholder="e.g., HBD-2025-0142" aria-describedby={result === 'invalid' && !code.trim() ? 'code-error' : undefined} />{result === 'invalid' && !code.trim() && <p id="code-error" className="mt-2 text-sm font-semibold text-red-700">Please enter your reference code.</p>}</div>
@@ -242,7 +312,7 @@ function LookupPage() {
           <p className="mt-4 flex gap-2 text-xs leading-5 text-slate-500"><Icon name="shield" className="h-4 w-4 shrink-0" /> Do not enter real personal information. This is a college prototype.</p>
         </form>
         <div aria-live="polite">
-          {result === 'idle' || result === 'invalid' ? <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><span className="grid h-14 w-14 place-items-center rounded-full bg-white text-slate-400 shadow-sm"><Icon name="id" className="h-7 w-7" /></span><h2 className="mt-4 font-bold text-slate-900">Your sample result will appear here</h2><p className="mt-2 max-w-xs text-sm leading-6 text-slate-600">Enter both fields, then select “Search sample record.”</p></div> : result === 'found' ? <div className="rounded-2xl border border-[#8BAF93] bg-white p-6 shadow-sm sm:p-8"><div className="flex items-center gap-3 text-[#3F5A45]"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#8BAF93] text-[#26382A]"><Icon name="check" /></span><div><p className="text-xs font-bold uppercase tracking-wide">Sample record found</p><h2 className="text-xl font-bold text-slate-950">Maria Santos</h2></div></div><dl className="mt-6 space-y-4 border-t border-slate-100 pt-5"><div><dt className="text-xs font-bold uppercase text-slate-500">Reference code</dt><dd className="mt-1 font-semibold">HBD-2025-0142</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Barangay</dt><dd className="mt-1 font-semibold">Barangay Maligaya</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Sample schedule</dt><dd className="mt-1 font-semibold">May 15, 2025 · 8:00 AM</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Status</dt><dd className="mt-1"><span className="rounded-full bg-[#E3ECE5] px-3 py-1 text-xs font-bold text-[#3F5A45]">FOR INFORMATION ONLY</span></dd></div></dl></div> : <div className="rounded-2xl border border-[#D8CCE9] bg-[#F7F4FB] p-6 sm:p-8"><span className="grid h-11 w-11 place-items-center rounded-full bg-white text-[#6F4FA8]"><Icon name="info" /></span><h2 className="mt-4 text-xl font-bold text-slate-950">No matching sample record</h2><p className="mt-2 text-sm leading-6 text-slate-700">Check the name and reference code. For this demo, use <strong>Maria Santos</strong> and <strong>HBD-2025-0142</strong>.</p></div>}
+           {result === 'loading' ? <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center"><h2 className="font-bold text-slate-900">Checking sample record…</h2><p className="mt-2 text-sm leading-6 text-slate-600">Please wait while we look up the fictional record.</p></div> : result === 'error' ? <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50 p-8 text-center"><h2 className="font-bold text-red-900">Lookup unavailable</h2><p className="mt-2 text-sm leading-6 text-red-800">We could not check the sample record. Please try again later.</p></div> : result === 'idle' || result === 'invalid' ? <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><span className="grid h-14 w-14 place-items-center rounded-full bg-white text-slate-400 shadow-sm"><Icon name="id" className="h-7 w-7" /></span><h2 className="mt-4 font-bold text-slate-900">Your sample result will appear here</h2><p className="mt-2 max-w-xs text-sm leading-6 text-slate-600">Enter both fields, then select “Search sample record.”</p></div> : result === 'found' && lookupResult ? <div className="rounded-2xl border border-[#8BAF93] bg-white p-6 shadow-sm sm:p-8"><div className="flex items-center gap-3 text-[#3F5A45]"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#8BAF93] text-[#26382A]"><Icon name="check" /></span><div><p className="text-xs font-bold uppercase tracking-wide">Sample record found</p><h2 className="text-xl font-bold text-slate-950">{lookupResult.name}</h2></div></div><dl className="mt-6 space-y-4 border-t border-slate-100 pt-5"><div><dt className="text-xs font-bold uppercase text-slate-500">Reference code</dt><dd className="mt-1 font-semibold">{lookupResult.referenceCode}</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Barangay</dt><dd className="mt-1 font-semibold">Barangay {lookupResult.barangay}</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Sample schedule</dt><dd className="mt-1 font-semibold">{beneficiaryLookup.sampleSchedule}</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Status</dt><dd className="mt-1"><span className="rounded-full bg-[#E3ECE5] px-3 py-1 text-xs font-bold text-[#3F5A45]">{beneficiaryLookup.status}</span></dd></div></dl></div> : <div className="rounded-2xl border border-[#D8CCE9] bg-[#F7F4FB] p-6 sm:p-8"><span className="grid h-11 w-11 place-items-center rounded-full bg-white text-[#6F4FA8]"><Icon name="info" /></span><h2 className="mt-4 text-xl font-bold text-slate-950">No matching sample record</h2><p className="mt-2 text-sm leading-6 text-slate-700">Check the name and reference code. For this demo, use <strong>{beneficiaryLookup.name}</strong> and <strong>{beneficiaryLookup.referenceCode}</strong>.</p></div>}
         </div>
       </div>
     </>
@@ -282,7 +352,31 @@ function WaitingPage() {
 }
 
 function AnnouncementsPage() {
-  return <><PageIntro eyebrow="Public notices" title="Announcements and reminders" description="Review recent fictional updates before visiting a distribution site." /><div className="space-y-4">{announcements.map((item, i) => <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7"><div className="flex flex-col gap-5 sm:flex-row sm:items-start"><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${i === 0 ? 'bg-[#EDE7F6] text-[#54358B]' : i === 1 ? 'bg-[#EDE7F6] text-[#54358B]' : 'bg-[#8BAF93] text-[#26382A]'}`}><Icon name={i === 0 ? 'calendar' : i === 1 ? 'bell' : 'shield'} /></span><div className="flex-1"><div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6F4FA8]"><span>{item.type}</span><span className="h-1 w-1 rounded-full bg-slate-300" /><time className="text-slate-500">{item.date}</time></div><h2 className="mt-2 text-xl font-bold text-slate-950">{item.title}</h2><p className="mt-2 leading-7 text-slate-600">{item.text}</p></div></div></article>)}</div><div className="mt-6"><Notice>All names, dates, locations, and announcements on this website are fictional sample data for a BSIT-3 project.</Notice></div></>
+  const [items, setItems] = useState<Announcement[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+
+    getAnnouncements()
+      .then((announcements) => {
+        if (active) setItems(announcements)
+      })
+      .catch(() => {
+        if (active) setError('Announcements are temporarily unavailable. Please try again later.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  return <><PageIntro eyebrow="Public notices" title="Announcements and reminders" description="Review recent fictional updates before visiting a distribution site." />{loading && <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center"><p className="font-bold text-slate-900">Loading announcements…</p><p className="mt-1 text-sm text-slate-600">Please wait while the sample announcements load.</p></div>}{error && <div className="rounded-2xl border border-red-200 bg-red-50 p-10 text-center"><h2 className="font-bold text-red-900">Unable to load announcements</h2><p className="mt-1 text-sm text-red-800">{error}</p></div>}{!loading && !error && !items.length && <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="bell" className="mx-auto h-8 w-8 text-slate-400" /><h2 className="mt-3 font-bold text-slate-900">No announcements available</h2><p className="mt-1 text-sm text-slate-600">There are no sample announcements to display.</p></div>}{!loading && !error && items.length > 0 && <><div className="space-y-4">{items.map((item, i) => <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7"><div className="flex flex-col gap-5 sm:flex-row sm:items-start"><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${i === 0 ? 'bg-[#EDE7F6] text-[#54358B]' : i === 1 ? 'bg-[#EDE7F6] text-[#54358B]' : 'bg-[#8BAF93] text-[#26382A]'}`}><Icon name={i === 0 ? 'calendar' : i === 1 ? 'bell' : 'shield'} /></span><div className="flex-1"><div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6F4FA8]"><span>{item.type}</span><span className="h-1 w-1 rounded-full bg-slate-300" /><time className="text-slate-500">{item.date}</time></div><h2 className="mt-2 text-xl font-bold text-slate-950">{item.title}</h2><p className="mt-2 leading-7 text-slate-600">{item.text}</p></div></div></article>)}</div><div className="mt-6"><Notice>All names, dates, locations, and announcements on this website are fictional sample data for a BSIT-3 project.</Notice></div></>}
+  </>
 }
 
 function AssistancePage() {
