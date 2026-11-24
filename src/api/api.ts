@@ -1,5 +1,6 @@
 import { API_CONFIG } from './config'
-import { announcements, beneficiaryLookupRecord, schedules } from '../data/mockData'
+import { beneficiaryLookupRecord } from '../data/mockData'
+import { formatDate, publishedContent } from '../data/staffContent'
 import type {
   Announcement,
   BeneficiaryLookupRequest,
@@ -40,6 +41,15 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 export async function getSchedules(barangay?: string): Promise<Schedule[]> {
   if (API_CONFIG.USE_MOCK_DATA) {
     const query = barangay?.trim().toLowerCase()
+    const schedules = publishedContent('schedules').map(({ id, values }) => ({
+      id,
+      barangay: values.barangay,
+      date: formatDate(values.date),
+      day: formatDate(values.date, { weekday: 'long' }),
+      time: values.time,
+      venue: values.venue,
+      group: values.group,
+    }))
     return query ? schedules.filter((schedule) => schedule.barangay.toLowerCase().includes(query)) : schedules
   }
 
@@ -64,7 +74,11 @@ export async function lookupBeneficiary(request: BeneficiaryLookupRequest): Prom
 
 export async function getAnnouncements(): Promise<Announcement[]> {
   if (API_CONFIG.USE_MOCK_DATA) {
-    return announcements
+    return publishedContent('announcements')
+      .sort((a, b) => b.values.date.localeCompare(a.values.date) || b.id - a.id)
+      .map(({ id, values }) => ({
+        id, type: values.type, date: formatDate(values.date), title: values.title, text: values.text,
+      }))
   }
 
   return requestJson<Announcement[]>('/announcements')
