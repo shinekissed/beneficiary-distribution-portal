@@ -133,16 +133,11 @@ h1, h2, h3 {
 }
 
 .brand-icon {
-  display: grid;
-  place-items: center;
+  display: block;
   flex-shrink: 0;
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: var(--purple);
-  color: white;
-  font-size: 25px;
-  box-shadow: 0 0 0 4px var(--lavender);
+  object-fit: contain;
 }
 
 .brand-text {
@@ -151,7 +146,7 @@ h1, h2, h3 {
 }
 
 .brand-eyebrow {
-  color: var(--purple-mid);
+  color: #530266;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .12em;
@@ -1076,4 +1071,8 @@ dd {
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+.site-footer .brand-name {
+  color: #e9d5ff;
 }

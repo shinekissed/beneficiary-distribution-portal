@@ -1,5 +1,6 @@
 import { FormEvent, ReactNode, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import heroWelcome from './assets/illustrations/hero-welcome.webp'
+import kaagapayLogo from './assets/kaagapay-logo.png'
 import scheduleSearch from './assets/illustrations/schedule-search.webp'
 import requirementsChecklist from './assets/illustrations/requirements-checklist.webp'
 import requirementsDocuments from './assets/illustrations/requirements-documents.webp'
@@ -448,17 +449,11 @@ function App() {
   return (
     <div className="distribution-portal flex min-h-dvh flex-col bg-[#F7F8FA] text-slate-800">
       <a href="#main-content" className="sr-only z-[100] bg-white p-3 font-bold focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to main content</a>
-      <div className="bg-[#54358B] text-[#F3EFF9]">
-        <div className={`mx-auto flex ${contentWidth} items-center justify-between px-4 py-2 text-xs sm:px-6 lg:px-8`}>
-          <p>Republic of the Philippines · Student Project Prototype</p>
-          <p className="hidden sm:block">For demonstration purposes only</p>
-        </div>
-      </div>
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
         <div className={`mx-auto flex ${contentWidth} items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8`}>
-          <button onClick={() => goTo('home')} className="flex min-w-0 items-center gap-2 text-left sm:gap-3" aria-label="Benefit Distribution Assistance home">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#54358B] sm:h-12 sm:w-12 text-white ring-4 ring-[#EDE7F6]"><Icon name="shield" className="h-6 w-6" /></span>
-            <span><span className="hidden text-xs font-bold uppercase tracking-[.14em] text-[#6F4FA8] sm:block">HBD Information System</span><span className="block text-sm font-bold leading-tight text-slate-950 sm:text-base"><span className="sm:hidden">Benefit Assistance</span><span className="hidden sm:inline">Benefit Distribution Assistance</span></span></span>
+          <button onClick={() => goTo('home')} className="flex min-w-0 items-center gap-2 text-left sm:gap-3" aria-label="KAAGAPAY home">
+            <img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain sm:size-12" />
+            <span className="text-sm font-bold leading-tight text-[#530266] sm:text-base">KAAGAPAY</span>
           </button>
           <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary navigation">
             {navItems.slice(0, 5).map((item) => <button key={item.id} onClick={() => goTo(item.id)} className={`rounded-lg px-3 py-2 text-sm font-bold transition ${page === item.id ? 'bg-[#EDE7F6] text-[#452A73]' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'}`}>{item.label}</button>)}
@@ -485,11 +480,11 @@ function App() {
 
       <footer className={`bg-[#54358B] text-[#F3EFF9] ${isStaff ? "mt-8" : "flex flex-1 flex-col"}`}>
         <div className={`mx-auto grid w-full ${contentWidth} gap-5 px-4 sm:px-6 md:grid-cols-3 lg:px-8 ${isStaff ? "py-10" : "py-6 sm:py-8"}`}>
-          <div><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-white/10"><Icon name="shield" /></span><p className="font-bold text-white">HBD Information System</p></div><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">A fictional BSIT-3 project prototype designed to make benefit distribution information easier to access.</p></div>
+          <div><div className="flex items-center gap-3"><img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain" /><p className="font-bold text-[#E9D5FF]">KAAGAPAY</p></div><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">A fictional BSIT-3 project prototype designed to make benefit distribution information easier to access.</p></div>
           <div><h2 className="font-bold text-white">Useful links</h2><div className="mt-4 grid gap-2 text-sm"><button onClick={() => goTo('requirements')} className="w-fit hover:text-white hover:underline">Document checklist</button><button onClick={() => goTo('process')} className="w-fit hover:text-white hover:underline">Process guide</button><button onClick={() => goTo('assistance')} className="w-fit hover:text-white hover:underline">Contact assistance</button></div></div>
           <div><h2 className="font-bold text-white">Prototype disclaimer</h2><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">This website does not determine eligibility, verify documents, assign queues, monitor live attendance, or approve benefits.</p></div>
         </div>
-        <div className="mt-auto border-t border-white/10"><div className={`mx-auto flex ${contentWidth} flex-col gap-2 px-4 py-4 text-xs text-[#C9BCE0] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8`}><p>© 2025 HBDIS Student Project</p><p>All data shown is fictional.</p></div></div>
+        <div className="mt-auto border-t border-white/10"><div className={`mx-auto flex ${contentWidth} flex-col gap-2 px-4 py-4 text-xs text-[#C9BCE0] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8`}><p>© 2025 KAAGAPAY Student Project</p><p>All data shown is fictional.</p></div></div>
       </footer>
     </div>
   )
