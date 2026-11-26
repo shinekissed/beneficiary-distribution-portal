@@ -424,7 +424,7 @@ function lookupPage() {
 
         <p class="muted">
           Sample: <strong>Maria Santos</strong>
-          and <strong>HBD-2025-0142</strong>
+          and <strong>HBD-2026-0142</strong>
         </p>
 
         <div class="form-group">
@@ -453,7 +453,7 @@ function lookupPage() {
           <input
             id="reference"
             class="field"
-            placeholder="e.g., HBD-2025-0142"
+            placeholder="e.g., HBD-2026-0142"
             style="text-transform:uppercase"
             aria-describedby="code-error"
           >
@@ -556,7 +556,7 @@ function bindLookup() {
             <dl>
               <div>
                 <dt>Reference code</dt>
-                <dd>HBD-2025-0142</dd>
+                <dd>HBD-2026-0142</dd>
               </div>
 
               <div>
@@ -588,7 +588,7 @@ function bindLookup() {
             <p>
               Check the name and reference code.
               For this demo, use <strong>Maria Santos</strong>
-              and <strong>HBD-2025-0142</strong>.
+              and <strong>HBD-2026-0142</strong>.
             </p>
           </div>
         `;
