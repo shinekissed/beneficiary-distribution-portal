@@ -80,8 +80,8 @@ HTTP 200 OK
   {
     "id": 1,
     "barangay": "Barangay Maligaya",
-    "date": "May 15, 2025",
-    "day": "Thursday",
+    "date": "November 15, 2026",
+    "day": "Sunday",
     "time": "8:00 AM – 12:00 PM",
     "venue": "Maligaya Covered Court",
     "group": "Surnames A–L"
@@ -112,7 +112,7 @@ The current frontend expects display-ready date, day, and time strings.
 ```json
 {
   "name": "Maria Santos",
-  "referenceCode": "HBD-2025-0142"
+  "referenceCode": "HBD-2026-0142"
 }
 ```
 
@@ -124,7 +124,7 @@ HTTP 200 OK
 {
   "id": 1,
   "name": "Maria Santos",
-  "referenceCode": "HBD-2025-0142",
+  "referenceCode": "HBD-2026-0142",
   "barangay": "Maligaya",
   "scheduleId": 1
 }
@@ -176,21 +176,21 @@ HTTP 200 OK
   {
     "id": 1,
     "type": "Schedule update",
-    "date": "May 8, 2025",
+    "date": "November 8, 2026",
     "title": "Barangay Mabini venue confirmed",
     "text": "The sample distribution venue is the Mabini Elementary School Gym. Please use the east gate entrance."
   },
   {
     "id": 2,
     "type": "Reminder",
-    "date": "May 6, 2025",
+    "date": "November 6, 2026",
     "title": "Bring original documents",
     "text": "Prepare your original valid ID and reference slip. Photocopies may be requested at the validation desk."
   },
   {
     "id": 3,
     "type": "Advisory",
-    "date": "May 2, 2025",
+    "date": "November 2, 2026",
     "title": "No fee is required",
     "text": "This fictional program does not collect processing fees. Report anyone asking for payment to the help desk."
   }

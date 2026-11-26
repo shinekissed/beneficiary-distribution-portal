@@ -1,16 +1,15 @@
 import { FormEvent, ReactNode, useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import heroWelcome from './assets/illustrations/hero-welcome.webp'
+import heroWelcome from './assets/illustrations/old-lady-help.jpg'
 import kaagapayLogo from './assets/kaagapay-logo.png'
-import scheduleSearch from './assets/illustrations/schedule-search.webp'
-import requirementsChecklist from './assets/illustrations/requirements-checklist.webp'
-import requirementsDocuments from './assets/illustrations/requirements-documents.webp'
-import serviceArea from './assets/illustrations/service-area.webp'
-import assistanceDesk from './assets/illustrations/assistance-desk.webp'
-import processSchedule from './assets/illustrations/process-schedule.webp'
-import processVenue from './assets/illustrations/process-venue.webp'
-import processDocuments from './assets/illustrations/process-documents.webp'
-import processGuidance from './assets/illustrations/process-guidance.webp'
-import processComplete from './assets/illustrations/process-complete.webp'
+import requirementsPhoto from './assets/illustrations/submit-requirements.avif'
+import requirementsReminderPhoto from './assets/illustrations/requirements.jpg'
+import serviceArea from './assets/illustrations/service-counter.jpg'
+import assistanceDesk from './assets/illustrations/assists.jpg'
+import processSchedule from './assets/illustrations/step1.jpg'
+import processVenue from './assets/illustrations/step2.jpg'
+import processDocuments from './assets/illustrations/step3.jpg'
+import processGuidance from './assets/illustrations/step4.jpg'
+import processComplete from './assets/illustrations/step5.jpg'
 import { getAnnouncements, getSchedules, lookupBeneficiary } from './api/api'
 import type { Announcement, BeneficiaryLookupResult, Schedule } from './types/api'
 import { beneficiaryLookup } from './data/mockData'
@@ -96,11 +95,11 @@ const navItems: { id: Page; label: string; icon: IconName }[] = [
   { id: 'assistance', label: 'Assistance', icon: 'help' },
 ]
 
-function PageIntro({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
+function PageIntro({ eyebrow, title, description, titleClassName = 'text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl' }: { eyebrow?: string; title: string; description: string; titleClassName?: string }) {
   return (
     <div className="mb-5 sm:mb-6">
-      <p className="mb-2 text-sm font-bold uppercase tracking-[0.16em] text-[#6F4FA8]">{eyebrow}</p>
-      <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{title}</h1>
+      {eyebrow && <p className="mb-2 text-sm font-bold uppercase tracking-[0.16em] text-[#6F4FA8]">{eyebrow}</p>}
+      <h1 className={titleClassName}>{title}</h1>
       <p className="mt-3 max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg">{description}</p>
     </div>
   )
@@ -116,7 +115,6 @@ function Notice({ children }: { children: ReactNode }) {
 }
 
 function HomePage({ goTo, updatedAt }: { goTo: (page: Page) => void; updatedAt?: string }) {
-  const quickLinks = navItems.slice(1, 7)
   const [announcementItems, setAnnouncementItems] = useState<Announcement[]>([])
   const [announcementsLoading, setAnnouncementsLoading] = useState(true)
   const [announcementsError, setAnnouncementsError] = useState<string | null>(null)
@@ -140,71 +138,86 @@ function HomePage({ goTo, updatedAt }: { goTo: (page: Page) => void; updatedAt?:
     }
   }, [updatedAt])
 
+  const visitSteps: { page: Page; label: string; title: string; description: string }[] = [
+    { page: 'schedules', label: 'Schedules', title: 'Check your schedule', description: 'Choose your barangay to see the date and place.' },
+    { page: 'requirements', label: 'Requirements', title: 'Get your papers ready', description: 'Bring your original valid ID and reference slip. Photocopies may be asked for.' },
+    { page: 'process', label: 'Process Guide', title: 'Know the steps', description: 'See what happens from the gate to the last counter.' },
+    { page: 'service', label: 'Service Area', title: 'Find your counter', description: 'See where to line up and where to wait.' },
+    { page: 'waiting', label: 'Waiting Time', title: 'See how long it takes', description: 'Check the estimated waiting time before your visit.' },
+  ]
+  const outlineButton = 'inline-flex min-h-12 items-center rounded-lg border-2 border-[#503386] bg-white px-5 py-2.5 text-sm font-bold text-[#40246e] hover:bg-[#f1eaf9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#503386]'
+
   return (
     <>
-      <section className="overflow-hidden rounded-3xl bg-[#54358B] text-white shadow-xl shadow-[#352054]/10">
-        <div className="relative grid items-center gap-6 px-5 py-6 sm:px-8 sm:py-8 lg:grid-cols-[1.35fr_.65fr] lg:gap-10 lg:px-10 xl:px-12">
-          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full border-[48px] border-white/5" />
-          <div className="absolute bottom-0 right-24 h-36 w-36 rounded-full bg-[#8B6FC0]/10 blur-2xl" />
-          <div className="relative max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#8BAF93] bg-[#8BAF93]/15 px-3 py-1.5 text-sm font-semibold text-[#F3EFF9]">
-              <Icon name="shield" className="h-4 w-4" /> Public information prototype
-            </span>
-            <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight sm:text-4xl xl:text-5xl">Benefit information, made easier to understand.</h1>
-            <p className="mt-3 max-w-2xl text-lg leading-relaxed text-[#F3EFF9]">Find your sample schedule, prepare the right documents, and learn what to expect at the distribution site.</p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button onClick={() => goTo('schedules')} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#EDE7F6] px-6 py-3 font-bold text-[#352054] shadow-lg shadow-[#352054]/20 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                Check schedules <Icon name="arrow" />
-              </button>
-              <button onClick={() => goTo('lookup')} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3 font-bold text-white transition hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                Individual lookup
-              </button>
+      <section className="bg-[#503386] text-white">
+        <div className="mx-auto grid max-w-[96rem] items-center gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[2fr_1fr] lg:gap-12 lg:px-8 lg:py-16">
+          <div>
+            <h1 className="text-[clamp(2.1rem,3.8vw,4.25rem)] leading-[1.15] font-bold">
+              Find out when and where to <span className="underline decoration-[#f9c86a] decoration-4 underline-offset-8">claim your benefits.</span>
+            </h1>
+            <p className="mt-6 max-w-xl leading-relaxed text-[#eee6f7]">Look up your schedule, see which documents to bring, and know what to expect when you get to the site.</p>
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+              <button onClick={() => goTo('schedules')} className="min-h-12 rounded-md bg-white px-6 py-3 text-sm font-bold text-[#40246e] hover:bg-[#f1eaf9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Check schedules</button>
+              <button onClick={() => goTo('lookup')} className="min-h-12 text-sm font-bold underline underline-offset-4 hover:text-[#f9c86a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Look up a record</button>
             </div>
           </div>
-          <figure className="relative hidden lg:block">
-            <div className="absolute inset-6 rounded-full bg-[#8B6FC0]/20 blur-2xl" />
-            <img src={heroWelcome} alt="Senior beneficiary using an information tablet with help from a public-service staff member" className="relative mx-auto aspect-[4/3] max-h-72 w-full max-w-md rounded-[2rem] object-cover shadow-2xl shadow-[#352054]/25 ring-1 ring-white/20" />
-          </figure>
+          <img src={heroWelcome} alt="An older woman receiving assistance" className="hidden aspect-[9/7] w-full rounded-lg object-cover sm:block sm:max-lg:max-w-md" />
         </div>
       </section>
 
-      <section className="py-6 sm:py-8">
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div><p className="text-sm font-bold uppercase tracking-widest text-[#6F4FA8]">Quick access</p><h2 className="mt-1 text-2xl font-bold text-slate-950">How can we help?</h2></div>
+      <div className="mx-auto grid max-w-[96rem] items-start gap-10 px-4 py-10 text-[#201a2d] sm:px-6 sm:py-14 lg:grid-cols-[1.55fr_1fr] lg:gap-12 lg:px-8">
+        <div>
+          <section aria-labelledby="visit-heading" className="rounded-lg bg-white p-5 shadow-[0_12px_36px_#3520541a] sm:p-9">
+            <h2 id="visit-heading" className="text-2xl font-bold sm:text-4xl">Your visit, step by step</h2>
+            <p className="mt-3 leading-relaxed text-[#433b4d]">This is the order most people follow on the day. You can open any step.</p>
+            <ol role="list" className="relative mt-8 grid gap-8 before:absolute before:top-6 before:bottom-0 before:left-[1.375rem] before:w-0.5 before:bg-[#d3c3e8]">
+              {visitSteps.map((step, index) => (
+                <li key={step.page} className="relative grid grid-cols-[2.75rem_minmax(0,1fr)] items-start gap-3 sm:gap-5">
+                  <span aria-hidden="true" className="grid size-11 place-items-center rounded-full bg-[#503386] text-xl font-bold text-white">{index + 1}</span>
+                  <div className="pt-1">
+                    <h3 className="text-xl font-bold">{step.title}</h3>
+                    <p className="mt-2 leading-relaxed text-[#433b4d]">{step.description}</p>
+                    <button onClick={() => goTo(step.page)} className={`mt-3 ${outlineButton}`}>Open {step.label}</button>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+          <p className="mt-7 text-[#433b4d] sm:px-5">Already registered? <button onClick={() => goTo('lookup')} className="font-bold text-[#503386] underline underline-offset-2">Look up your record</button>.</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {quickLinks.map((item) => (
-            <button key={item.id} onClick={() => goTo(item.id)} className="group flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#C5B6DE] hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#54358B]">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#EDE7F6] text-[#54358B]"><Icon name={item.icon} /></span>
-              <span><span className="block font-bold text-slate-900">{item.label}</span><span className="mt-1 block text-sm leading-relaxed text-slate-600">{item.id === 'schedules' ? 'Find sample dates and venues by barangay.' : item.id === 'lookup' ? 'Check a fictional beneficiary record.' : item.id === 'requirements' ? 'Review what to bring on the day.' : item.id === 'process' ? 'Follow the distribution steps.' : item.id === 'service' ? 'Navigate counters and queue areas.' : 'See available wait estimates.'}</span></span>
-            </button>
-          ))}
-        </div>
-      </section>
 
-      <section className="grid items-start gap-4 lg:grid-cols-[1.4fr_.6fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex items-center justify-between gap-4"><div><p className="text-sm font-bold uppercase tracking-widest text-[#6F4FA8]">Latest notices</p><h2 className="mt-1 text-2xl font-bold text-slate-950">Announcements</h2></div><button onClick={() => goTo('announcements')} className="hidden font-bold text-[#54358B] hover:underline sm:block">View all</button></div>
-          <div className="mt-5 divide-y divide-slate-200">
-            {announcementsLoading && <p className="py-4 text-sm text-slate-600">Loading announcements…</p>}
-            {announcementsError && <p className="py-4 text-sm text-red-700">{announcementsError}</p>}
-            {!announcementsLoading && !announcementsError && !announcementItems.length && <p className="py-4 text-sm text-slate-600">No announcements available.</p>}
-            {!announcementsLoading && !announcementsError && announcementItems.slice(0, 2).map((item) => <article key={item.id} className="py-4 first:pt-0 last:pb-0"><div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6F4FA8]"><span>{item.type}</span><span className="h-1 w-1 rounded-full bg-slate-300" /><span className="text-slate-500">{item.date}</span></div><h3 className="mt-2 font-bold text-slate-900">{item.title}</h3><p className="mt-1 text-sm leading-relaxed text-slate-600">{item.text}</p></article>)}
-          </div>
-        </div>
-        <div className="rounded-2xl bg-[#E3ECE5] p-6 sm:p-8">
-          <span className="grid h-12 w-12 place-items-center rounded-xl bg-[#8BAF93] text-[#26382A] shadow-sm"><Icon name="help" className="h-6 w-6" /></span>
-          <h2 className="mt-5 text-xl font-bold text-slate-950">Need assistance?</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-700">Our sample help desk guide explains who to approach and what information to prepare.</p>
-          <button onClick={() => goTo('assistance')} className="mt-5 inline-flex items-center gap-2 font-bold text-[#452A73] hover:underline">Get help <Icon name="arrow" className="h-4 w-4" /></button>
-        </div>
-      </section>
+        <aside>
+          <section aria-labelledby="news-heading">
+            <h2 id="news-heading" className="text-2xl font-bold sm:text-4xl">What’s new</h2>
+            <div className="mt-5 divide-y divide-[#dcd2e6]" aria-live="polite">
+              {announcementsLoading && <p>Loading announcements…</p>}
+              {announcementsError && <p className="text-red-700">{announcementsError}</p>}
+              {!announcementsLoading && !announcementsError && !announcementItems.length && <p>No announcements available.</p>}
+              {!announcementsLoading && !announcementsError && announcementItems.slice(0, 2).map((item) => (
+                <article key={item.id} className="py-5 first:pt-0 last:pb-0">
+                  <time className="text-sm font-medium text-[#503386]">{item.date}</time>
+                  <h3 className="mt-1 break-words text-xl font-bold">{item.title}</h3>
+                  <p className="mt-2 break-words leading-relaxed text-[#433b4d]">{item.text}</p>
+                </article>
+              ))}
+            </div>
+            <button onClick={() => goTo('announcements')} className={`mt-5 ${outlineButton}`}>See all announcements</button>
+          </section>
+          <section className="mt-9 rounded-lg bg-[#e2eae0] p-5 sm:p-7">
+            <h2 className="text-xl font-bold">Not sure where to go?</h2>
+            <p className="mt-2 leading-relaxed text-[#433b4d]">Ask at the help desk. Our guide tells you who to approach and what to bring.</p>
+            <button onClick={() => goTo('assistance')} className={`mt-4 ${outlineButton}`}>Read the help desk guide</button>
+          </section>
+        </aside>
+      </div>
     </>
   )
 }
 
+
 function SchedulesPage({ updatedAt }: { updatedAt?: string }) {
   const [query, setQuery] = useState('')
+  const [group, setGroup] = useState('')
   const [scheduleItems, setScheduleItems] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -214,7 +227,10 @@ function SchedulesPage({ updatedAt }: { updatedAt?: string }) {
 
     getSchedules()
       .then((items) => {
-        if (active) setScheduleItems(items)
+        if (active) {
+          setScheduleItems(items)
+          setError(null)
+        }
       })
       .catch(() => {
         if (active) setError('Schedules are temporarily unavailable. Please try again later.')
@@ -228,42 +244,95 @@ function SchedulesPage({ updatedAt }: { updatedAt?: string }) {
     }
   }, [updatedAt])
 
-  const filtered = scheduleItems.filter((item) => item.barangay.toLowerCase().includes(query.trim().toLowerCase()))
+  const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const groups = [
+    { label: 'All', value: '' },
+    { label: 'Surnames A–L', value: 'surnamesal' },
+    { label: 'Surnames M–Z', value: 'surnamesmz' },
+    { label: 'Everyone', value: 'alllistedbeneficiaries' },
+  ]
+  const filtered = scheduleItems.filter((item) =>
+    normalize(item.barangay).includes(normalize(query)) &&
+    (!group || normalize(item.group) === group || (group === 'alllistedbeneficiaries' && normalize(item.group) === 'everyone')),
+  )
+  const agenda = new Map<string, Schedule[]>()
+  for (const item of filtered) {
+    const month = item.date.match(/^([a-z]+) \d{1,2},? (\d{4})$/i)?.slice(1).join(' ') ?? 'Schedule dates'
+    const rows = agenda.get(month) ?? []
+    rows.push(item)
+    agenda.set(month, rows)
+  }
+
   return (
-    <>
-      <PageIntro eyebrow="Distribution calendar" title="Search schedules by barangay" description="Enter a barangay name to view fictional distribution dates, times, and venues for this prototype." />
-      <div className="grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-[1fr_220px]">
-        <div className="p-5 sm:p-7">
-          <label htmlFor="barangay" className="text-sm font-bold text-slate-800">Barangay name</label>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row">
-            <div className="relative flex-1"><Icon name="search" className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input id="barangay" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Try “Maligaya” or “Mabini”" className="field pl-12" /></div>
-            {query && <button onClick={() => setQuery('')} className="min-h-12 rounded-xl border border-slate-300 px-5 font-bold text-slate-700 hover:bg-slate-50">Clear search</button>}
+    <div className="mx-auto max-w-[74rem] py-6 text-[18px] leading-relaxed text-[#1c1b22] [font-family:Inter,system-ui,sans-serif] sm:text-[20px]">
+      <div className="mb-7">
+        <h1 className="font-sans text-[34px] leading-[1.15] font-semibold sm:text-[50px]">When is your barangay’s turn?</h1>
+        <p className="mt-3 max-w-[680px] text-[#4b4955]">Search by barangay to see the date, time, and venue. All schedules here are made up for this prototype.</p>
+      </div>
+
+      <div className="grid items-start gap-8 pb-12 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="rounded-xl border border-[#dedbe6] bg-white p-6 lg:sticky lg:top-24">
+          <h2 className="mb-4 font-sans text-[23px] leading-tight font-semibold">Narrow it down</h2>
+          <label htmlFor="barangay" className="mb-1 block text-[18px] font-medium">Barangay name</label>
+          <input id="barangay" type="search" autoComplete="off" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Maligaya, Mabini…" className="field mb-5 rounded-lg" />
+
+          <p id="schedule-group" className="mb-2 text-[18px] font-medium">Group</p>
+          <div role="group" aria-labelledby="schedule-group" className="flex flex-wrap gap-2">
+            {groups.map(({ label, value }) => (
+              <button key={label} type="button" onClick={() => setGroup(value)} aria-pressed={group === value}
+                className="min-h-11 rounded-full border-2 border-[#dedbe6] px-3 font-sans text-[18px] font-medium hover:border-[#55348a] aria-pressed:border-[#55348a] aria-pressed:bg-[#55348a] aria-pressed:text-white">
+                {label}
+              </button>
+            ))}
           </div>
-          <p className="mt-3 text-sm text-slate-500">Showing {filtered.length} of {scheduleItems.length} sample schedules</p>
-        </div>
-        <img src={scheduleSearch} alt="Calendar, location pin, and search tools for finding a barangay schedule" className="hidden h-full min-h-44 w-full object-cover md:block" />
+        </aside>
+
+        <section aria-label="Schedule results" aria-busy={loading} className="min-w-0">
+          {!loading && !error && <p role="status" className="mb-3 text-right text-[18px] text-[#4b4955]">{filtered.length} of {scheduleItems.length} schedules</p>}
+          {loading && !error && <p role="status" className="rounded-xl border border-[#dedbe6] bg-white p-6">Loading schedules…</p>}
+          {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900"><h2 className="font-sans font-semibold">Unable to load schedules</h2><p>{error}</p></div>}
+          {!loading && !error && !filtered.length && (
+            <div className="rounded-xl border border-[#dedbe6] bg-white p-6">
+              <h2 className="font-sans text-[25px] leading-tight font-semibold">{scheduleItems.length ? 'Nothing matches that' : 'No schedules available'}</h2>
+              <p className="mt-1 text-[#4b4955]">{scheduleItems.length ? 'Try a shorter name, or set the group back to All.' : 'There are no sample schedules to display.'}</p>
+            </div>
+          )}
+          {!loading && !error && Array.from(agenda, ([month, rows]) => (
+            <div key={month} className="mb-6">
+              <h2 className="mb-3 font-sans text-[28px] leading-tight font-semibold sm:text-[36px]">{month}</h2>
+              <div tabIndex={0} role="region" aria-label={`${month} schedule table`} className="overflow-x-auto rounded-xl border border-[#dedbe6] bg-white">
+                <table className="w-full min-w-[39rem] text-left text-[18px]">
+                  <thead className="border-b border-[#dedbe6] bg-[#faf9fc] font-sans text-[#4b4955]">
+                    <tr>{['Date', 'Barangay and venue', 'Time', 'Group'].map((label) => <th key={label} scope="col" className="px-4 py-3 font-medium">{label}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#dedbe6]">
+                    {rows.map((item) => (
+                      <tr key={item.id} className="align-top hover:bg-[#fcfbfe]">
+                        <td className="px-4 py-5">
+                          <strong className="block font-sans text-[23px] leading-tight font-semibold">{item.date.replace(/,? \d{4}$/, '')}</strong>
+                          <span className="text-[#4b4955]">{item.day}</span>
+                        </td>
+                        <td className="px-4 py-5">
+                          <strong className="block font-sans text-[23px] leading-tight font-semibold">{item.barangay}</strong>
+                          <span className="block text-[#4b4955]">{item.venue}</span>
+                          <span className="mt-1 inline-block rounded bg-[#d5e4d3] px-2 text-[#26502b]">Scheduled</span>
+                        </td>
+                        <td className="px-4 py-5">{item.time}</td>
+                        <td className="px-4 py-5 font-medium">{item.group}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+          <p className="mt-5 rounded-lg bg-[#ece6f5] px-5 py-4 text-[18px]">These schedules are fictional and for demonstration only. Always confirm real information with your local office.</p>
+        </section>
       </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        {!loading && !error && filtered.map((item) => (
-          <article key={item.barangay} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between gap-4"><div><span className="rounded-full bg-[#8BAF93] px-3 py-1 text-xs font-bold text-[#26382A]">SCHEDULED</span><h2 className="mt-3 text-xl font-bold text-slate-950">{item.barangay}</h2></div><span className="grid h-11 w-11 place-items-center rounded-xl bg-[#EDE7F6] text-[#54358B]"><Icon name="calendar" /></span></div>
-            <dl className="mt-5 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
-              <div><dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Date</dt><dd className="mt-1 font-semibold text-slate-900">{item.date} <span className="font-normal text-slate-500">({item.day})</span></dd></div>
-              <div><dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Time</dt><dd className="mt-1 font-semibold text-slate-900">{item.time}</dd></div>
-              <div><dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Venue</dt><dd className="mt-1 font-semibold text-slate-900">{item.venue}</dd></div>
-              <div><dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Group</dt><dd className="mt-1 font-semibold text-slate-900">{item.group}</dd></div>
-            </dl>
-          </article>
-        ))}
-      </div>
-      {loading && <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-10 text-center"><p className="font-bold text-slate-900">Loading schedules…</p><p className="mt-1 text-sm text-slate-600">Please wait while the sample schedules load.</p></div>}
-      {error && <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-10 text-center"><h2 className="font-bold text-red-900">Unable to load schedules</h2><p className="mt-1 text-sm text-red-800">{error}</p></div>}
-      {!loading && !error && !scheduleItems.length && <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="calendar" className="mx-auto h-8 w-8 text-slate-400" /><h2 className="mt-3 font-bold text-slate-900">No schedules available</h2><p className="mt-1 text-sm text-slate-600">There are no sample schedules to display.</p></div>}
-      {!loading && !error && scheduleItems.length > 0 && !filtered.length && <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="search" className="mx-auto h-8 w-8 text-slate-400" /><h2 className="mt-3 font-bold text-slate-900">No sample schedule found</h2><p className="mt-1 text-sm text-slate-600">Check the spelling or try another barangay name.</p></div>}
-      <div className="mt-6"><Notice>Schedules shown here are fictional and for demonstration only. Always confirm official information with your local office.</Notice></div>
-    </>
+    </div>
   )
 }
+
 
 function LookupPage({ sampleSchedules }: { sampleSchedules: ReturnType<typeof publishedContent> }) {
   const [name, setName] = useState('')
@@ -309,52 +378,198 @@ function LookupPage({ sampleSchedules }: { sampleSchedules: ReturnType<typeof pu
     : beneficiaryLookup.sampleSchedule
 
   return (
-    <>
-      <PageIntro eyebrow="Beneficiary information" title="Individual lookup" description="Use the fictional sample credentials below to see how a beneficiary record may appear." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_.8fr]">
-        <form onSubmit={submit} noValidate className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="text-xl font-bold text-slate-950">Enter your information</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">Sample: <strong>{beneficiaryLookup.name}</strong> and <strong>{beneficiaryLookup.referenceCode}</strong></p>
-          <div className="mt-6 space-y-5">
-            <div><label htmlFor="full-name" className="text-sm font-bold text-slate-800">Full name <span className="text-red-600">*</span></label><input id="full-name" value={name} onChange={(e) => setName(e.target.value)} className="field mt-2" placeholder="e.g., Maria Santos" autoComplete="name" aria-describedby={result === 'invalid' && !name.trim() ? 'name-error' : undefined} />{result === 'invalid' && !name.trim() && <p id="name-error" className="mt-2 text-sm font-semibold text-red-700">Please enter your full name.</p>}</div>
-            <div><label htmlFor="reference" className="text-sm font-bold text-slate-800">Reference code <span className="text-red-600">*</span></label><input id="reference" value={code} onChange={(e) => setCode(e.target.value)} className="field mt-2 uppercase" placeholder="e.g., HBD-2025-0142" aria-describedby={result === 'invalid' && !code.trim() ? 'code-error' : undefined} />{result === 'invalid' && !code.trim() && <p id="code-error" className="mt-2 text-sm font-semibold text-red-700">Please enter your reference code.</p>}</div>
+    <div className="mx-auto max-w-[74rem] py-6 text-[#201a2d] [font-family:Inter,system-ui,sans-serif] sm:py-10">
+      <h1 className="font-sans text-[34px] leading-tight font-semibold sm:text-[46px]">Find your beneficiary record</h1>
+      <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#595367]">Enter your full name and the reference code on your slip to find your beneficiary record.</p>
+
+      <div className="mt-8 grid items-start gap-7 md:grid-cols-[5fr_6fr] lg:gap-10">
+        <form onSubmit={submit} noValidate className="min-w-0 border-l-4 border-[#54358B] pl-4 sm:pl-6">
+          <h2 className="font-sans text-xl font-semibold">Your details</h2>
+
+          <div className="mt-5 space-y-4">
+            <div>
+              <label htmlFor="full-name" className="block text-sm font-medium">Full name</label>
+              <input id="full-name" required value={name} onChange={(event) => setName(event.target.value)} className="field mt-1 rounded-lg" placeholder={`e.g., ${beneficiaryLookup.name}`} autoComplete="off" aria-invalid={result === 'invalid' && !name.trim()} aria-describedby={result === 'invalid' && !name.trim() ? 'name-error' : undefined} />
+              {result === 'invalid' && !name.trim() && <p id="name-error" className="mt-1 text-sm text-red-700">Please enter your full name.</p>}
+            </div>
+            <div>
+              <label htmlFor="reference" className="block text-sm font-medium">Reference code</label>
+              <input id="reference" required value={code} onChange={(event) => setCode(event.target.value)} className="field mt-1 rounded-lg" placeholder={`e.g., ${beneficiaryLookup.referenceCode}`} autoComplete="off" aria-invalid={result === 'invalid' && !code.trim()} aria-describedby={result === 'invalid' && !code.trim() ? 'code-error' : undefined} />
+              {result === 'invalid' && !code.trim() && <p id="code-error" className="mt-1 text-sm text-red-700">Please enter your reference code.</p>}
+            </div>
           </div>
-          <button type="submit" className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#54358B] px-6 py-3 font-bold text-white transition hover:bg-[#452A73] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#54358B]"><Icon name="search" /> Search sample record</button>
-          <p className="mt-4 flex gap-2 text-xs leading-5 text-slate-500"><Icon name="shield" className="h-4 w-4 shrink-0" /> Do not enter real personal information. This is a college prototype.</p>
+
+          <button type="submit" className="mt-4 min-h-12 w-full rounded-lg bg-[#54358B] px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-[#452A73] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#54358B]">Search record</button>
+          <p className="mt-3 text-sm leading-relaxed text-[#595367]">Please don’t type real personal information. This is a college prototype.</p>
         </form>
-        <div aria-live="polite">
-           {result === 'loading' ? <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center"><h2 className="font-bold text-slate-900">Checking sample record…</h2><p className="mt-2 text-sm leading-relaxed text-slate-600">Please wait while we look up the fictional record.</p></div> : result === 'error' ? <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50 p-8 text-center"><h2 className="font-bold text-red-900">Lookup unavailable</h2><p className="mt-2 text-sm leading-relaxed text-red-800">We could not check the sample record. Please try again later.</p></div> : result === 'idle' || result === 'invalid' ? <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><span className="grid h-14 w-14 place-items-center rounded-full bg-white text-slate-400 shadow-sm"><Icon name="id" className="h-7 w-7" /></span><h2 className="mt-4 font-bold text-slate-900">Your sample result will appear here</h2><p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-600">Enter both fields, then select “Search sample record.”</p></div> : result === 'found' && lookupResult ? <div className="rounded-2xl border border-[#8BAF93] bg-white p-6 shadow-sm sm:p-8"><div className="flex items-center gap-3 text-[#3F5A45]"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#8BAF93] text-[#26382A]"><Icon name="check" /></span><div><p className="text-xs font-bold uppercase tracking-wide">Sample record found</p><h2 className="text-xl font-bold text-slate-950">{lookupResult.name}</h2></div></div><dl className="mt-6 space-y-4 border-t border-slate-100 pt-5"><div><dt className="text-xs font-bold uppercase text-slate-500">Reference code</dt><dd className="mt-1 font-semibold">{lookupResult.referenceCode}</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Barangay</dt><dd className="mt-1 font-semibold">Barangay {lookupResult.barangay}</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Sample schedule</dt><dd className="mt-1 font-semibold">{sampleSchedule}</dd></div><div><dt className="text-xs font-bold uppercase text-slate-500">Status</dt><dd className="mt-1"><span className="rounded-full bg-[#E3ECE5] px-3 py-1 text-xs font-bold text-[#3F5A45]">{beneficiaryLookup.status}</span></dd></div></dl></div> : <div className="rounded-2xl border border-[#D8CCE9] bg-[#F7F4FB] p-6 sm:p-8"><span className="grid h-11 w-11 place-items-center rounded-full bg-white text-[#6F4FA8]"><Icon name="info" /></span><h2 className="mt-4 text-xl font-bold text-slate-950">No matching sample record</h2><p className="mt-2 text-sm leading-relaxed text-slate-700">Check the name and reference code. For this demo, use <strong>{beneficiaryLookup.name}</strong> and <strong>{beneficiaryLookup.referenceCode}</strong>.</p></div>}
-        </div>
+
+        <section aria-live="polite" aria-label="Record lookup result" className="min-h-64 rounded-xl border border-[#dedbe6] bg-white p-5 sm:p-7">
+          {(result === 'idle' || result === 'invalid') && (
+            <>
+              <h2 className="font-sans text-xl font-semibold">Your record will show up here</h2>
+              <p className="mt-2 text-sm text-[#595367]">Fill in both boxes and press Search record.</p>
+            </>
+          )}
+          {result === 'loading' && <h2 className="font-sans text-xl font-semibold">Looking up your record…</h2>}
+          {result === 'error' && (
+            <>
+              <h2 className="font-sans text-xl font-semibold text-red-900">Lookup unavailable</h2>
+              <p className="mt-2 text-sm text-red-800">We could not look up your record. Please try again later.</p>
+            </>
+          )}
+          {result === 'notfound' && (
+            <>
+              <h2 className="font-sans text-xl font-semibold">No matching record found</h2>
+              <p className="mt-2 text-sm text-[#595367]">Check that your full name and reference code match the details on your slip.</p>
+            </>
+          )}
+          {result === 'found' && lookupResult && (
+            <>
+              <p className="text-sm font-bold text-[#3F5A45]">RECORD FOUND</p>
+              <h2 className="mt-1 font-sans text-xl font-semibold">{lookupResult.name}</h2>
+              <dl className="mt-4 grid gap-4 border-t border-[#dedbe6] pt-4 sm:grid-cols-2">
+                <div><dt className="text-sm font-bold text-[#595367]">Reference code</dt><dd className="break-words">{lookupResult.referenceCode}</dd></div>
+                <div><dt className="text-sm font-bold text-[#595367]">Barangay</dt><dd>Barangay {lookupResult.barangay}</dd></div>
+                <div><dt className="text-sm font-bold text-[#595367]">Distribution schedule</dt><dd>{sampleSchedule}</dd></div>
+                <div><dt className="text-sm font-bold text-[#595367]">Status</dt><dd>{beneficiaryLookup.status}</dd></div>
+              </dl>
+            </>
+          )}
+        </section>
       </div>
-    </>
+    </div>
   )
 }
 
+
 function RequirementsPage({ items, preparationReminders }: { items: typeof requirements; preparationReminders: string[] }) {
-  return <><PageIntro eyebrow="Before you visit" title="Document checklist" description="Prepare these sample requirements ahead of time for a smoother visit to the distribution site." /><div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]"><figure className="overflow-hidden rounded-2xl border border-[#D8CCE9] bg-[#EDE7F6] shadow-sm"><img src={requirementsChecklist} alt="Senior beneficiary organizing an identification card and required documents" className="h-full min-h-64 w-full object-cover" /></figure><div className="grid gap-4 sm:grid-cols-2">{items.map((item, i) => <article key={i} className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#EDE7F6] font-bold text-[#54358B]">{i + 1}</span><div><h2 className="font-bold text-slate-950">{item.title}</h2><p className="mt-1 text-sm leading-relaxed text-slate-600">{item.text}</p></div></article>)}</div></div><div className="mt-8 grid overflow-hidden rounded-2xl bg-[#54358B] text-white sm:grid-cols-[1fr_220px]"><div className="p-6 sm:p-8"><h2 className="flex items-center gap-3 text-xl font-bold"><Icon name="bell" /> Important reminders</h2><ul className="mt-5 grid gap-3 text-sm leading-relaxed text-[#F3EFF9]">{preparationReminders.map((x, i) => <li key={i} className="flex gap-3"><Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-[#C5B6DE]" />{x}</li>)}</ul></div><img src={requirementsDocuments} alt="Prepared identification card, document folder, checklist, and pen" className="hidden h-full w-full object-cover sm:block" /></div><div className="mt-6"><Notice>Requirements may vary in a real program. This checklist is fictional and does not verify or determine eligibility.</Notice></div></>
+  return <><PageIntro title="Document checklist" titleClassName="font-sans text-[34px] leading-tight font-semibold text-[#201a2d] sm:text-[46px]" description="Prepare these sample requirements ahead of time for a smoother visit to the distribution site." /><div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]"><figure className="overflow-hidden rounded-2xl border border-[#D8CCE9] bg-[#EDE7F6] shadow-sm"><img src={requirementsPhoto} alt="Application forms, a pen, and a wallet" className="h-full min-h-64 w-full object-cover" /></figure><div className="grid gap-4 sm:grid-cols-2">{items.map((item, i) => <article key={i} className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#EDE7F6] font-bold text-[#54358B]">{i + 1}</span><div><h2 className="font-bold text-slate-950">{item.title}</h2><p className="mt-1 text-sm leading-relaxed text-slate-600">{item.text}</p></div></article>)}</div></div><div className="mt-8 grid overflow-hidden rounded-2xl bg-[#54358B] text-white sm:grid-cols-[1fr_220px]"><div className="p-6 sm:p-8"><h2 className="flex items-center gap-3 text-xl font-bold"><Icon name="bell" /> Important reminders</h2><ul className="mt-5 grid gap-3 text-sm leading-relaxed text-[#F3EFF9]">{preparationReminders.map((x, i) => <li key={i} className="flex gap-3"><Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-[#C5B6DE]" />{x}</li>)}</ul></div><img src={requirementsReminderPhoto} alt="" className="hidden h-full w-full object-cover sm:block" /></div><div className="mt-6"><Notice>Requirements may vary in a real program. This checklist is fictional and does not verify or determine eligibility.</Notice></div></>
 }
 
 const processSteps = [
   { icon: 'calendar' as IconName, image: processSchedule, alt: 'Senior beneficiary checking a distribution schedule on a phone' },
-  { icon: 'map' as IconName, image: processVenue, alt: 'Senior beneficiary arriving at a barangay multipurpose hall reception' },
-  { icon: 'file' as IconName, image: processDocuments, alt: 'Senior beneficiary presenting documents to a service staff member' },
-  { icon: 'users' as IconName, image: processGuidance, alt: 'Public-service staff member giving clear guidance to a senior beneficiary' },
-  { icon: 'check' as IconName, image: processComplete, alt: 'Senior beneficiary reviewing an acknowledgement at a service counter' },
+  { icon: 'map' as IconName, image: processVenue, alt: 'Visitors and staff at a busy distribution venue' },
+  { icon: 'file' as IconName, image: processDocuments, alt: 'A visitor and staff member exchanging documents at a service counter' },
+  { icon: 'users' as IconName, image: processGuidance, alt: 'Visitors presenting documents at a distribution desk' },
+  { icon: 'check' as IconName, image: processComplete, alt: 'A beneficiary counting cash at a distribution counter' },
 ]
 
 function ProcessPage({ steps }: { steps: typeof processInstructions }) {
   const illustratedSteps = processSteps.map((visual, index) => ({ ...visual, ...steps[index] }))
-  return <><PageIntro eyebrow="What to expect" title="Distribution process guide" description="Follow these simple steps during your scheduled visit. On-site staff remain responsible for all official decisions." /><div className="relative space-y-4 lg:space-y-6"><div className="absolute bottom-8 left-6 top-8 w-0.5 bg-[#D8CCE9] lg:left-1/2 lg:-translate-x-1/2" aria-hidden="true" />{illustratedSteps.map((step, i) => <article key={i} className="relative grid gap-4 pl-16 lg:grid-cols-[1fr_64px_1fr] lg:items-center lg:gap-6 lg:pl-0"><div className={`overflow-hidden rounded-2xl border border-[#D8CCE9] bg-[#EDE7F6] shadow-sm ${i % 2 ? 'lg:order-3' : 'lg:order-1'}`}><img src={step.image} alt={step.alt} loading="lazy" className="aspect-[16/10] w-full object-cover" /></div><div className="absolute left-0 top-5 z-10 grid h-12 w-12 place-items-center rounded-full border-4 border-[#F7F8FA] bg-[#54358B] text-white shadow-md lg:static lg:order-2 lg:h-14 lg:w-14 lg:justify-self-center"><Icon name={step.icon} /></div><div className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 ${i % 2 ? 'lg:order-1 lg:text-right' : 'lg:order-3'}`}><p className="text-xs font-bold uppercase tracking-widest text-[#6F4FA8]">Step {i + 1}</p><h2 className="mt-2 text-xl font-bold text-slate-950">{step.title}</h2><p className="mt-2 text-sm leading-relaxed text-slate-600">{step.text}</p></div></article>)}</div><div className="mt-8"><Notice>This guide does not assign a queue number, verify documents, or approve benefits. Follow authorized personnel at the site.</Notice></div></>
+  return <><PageIntro title="Distribution process guide" titleClassName="font-sans text-[34px] leading-tight font-semibold text-[#201a2d] sm:text-[46px]" description="Follow these simple steps during your scheduled visit. On-site staff remain responsible for all official decisions." /><div className="relative mt-8 space-y-4 sm:mt-10 lg:space-y-6"><div className="absolute bottom-8 left-6 top-8 w-0.5 bg-[#D8CCE9] lg:left-1/2 lg:-translate-x-1/2" aria-hidden="true" />{illustratedSteps.map((step, i) => <article key={i} className="relative grid gap-4 pl-16 lg:grid-cols-[1fr_64px_1fr] lg:items-center lg:gap-6 lg:pl-0"><div className={`overflow-hidden rounded-2xl border border-[#D8CCE9] bg-[#EDE7F6] shadow-sm ${i % 2 ? 'lg:order-3' : 'lg:order-1'}`}><img src={step.image} alt={step.alt} loading="lazy" className="aspect-[16/10] w-full object-cover" /></div><div className="absolute left-0 top-5 z-10 grid h-12 w-12 place-items-center rounded-full border-4 border-[#F7F8FA] bg-[#54358B] text-white shadow-md lg:static lg:order-2 lg:h-14 lg:w-14 lg:justify-self-center"><Icon name={step.icon} /></div><div className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 ${i % 2 ? 'lg:order-1 lg:text-right' : 'lg:order-3'}`}><p className="text-xs font-bold uppercase tracking-widest text-[#6F4FA8]">Step {i + 1}</p><h2 className="mt-2 text-xl font-bold text-slate-950">{step.title}</h2><p className="mt-2 text-sm leading-relaxed text-slate-600">{step.text}</p></div></article>)}</div><div className="mt-8"><Notice>This guide does not assign a queue number, verify documents, or approve benefits. Follow authorized personnel at the site.</Notice></div></>
 }
 
 function ServicePage() {
-  const counters = [{ n: '01', title: 'Reception', text: 'Schedule check and general directions' }, { n: '02', title: 'Document Review', text: 'Manual checking by authorized staff' }, { n: '03', title: 'Assistance Desk', text: 'Senior citizen, PWD, and general help' }, { n: '04', title: 'Release Area', text: 'Final on-site processing and exit' }]
-  return <><PageIntro eyebrow="On-site guidance" title="Service area and counters" description="Use this sample layout to understand where to go and how to move through the venue." /><figure className="mb-6 overflow-hidden rounded-2xl border border-[#D8CCE9] bg-[#EDE7F6] shadow-sm"><img src={serviceArea} alt="Organized barangay service area with reception, assistance desk, seating, and directional guidance" className="h-56 w-full object-cover object-center sm:h-72" /></figure><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"><h2 className="text-xl font-bold text-slate-950">Sample service counters</h2><div className="mt-6 grid gap-4 sm:grid-cols-2">{counters.map((c) => <div key={c.n} className="rounded-xl bg-slate-50 p-5"><span className="text-3xl font-bold text-[#D8CCE9]">{c.n}</span><h3 className="mt-2 font-bold text-slate-950">{c.title}</h3><p className="mt-1 text-sm leading-relaxed text-slate-600">{c.text}</p></div>)}</div></div><aside className="rounded-2xl bg-[#EDE7F6] p-6 sm:p-8"><Icon name="pin" className="h-8 w-8 text-[#54358B]" /><h2 className="mt-4 text-xl font-bold text-slate-950">Queue instructions</h2><ol className="mt-5 space-y-4">{['Enter through the marked reception entrance.','Have your documents ready, but keep them secure.','Use priority seating if directed by staff.','Approach a counter only when called.'].map((x, i) => <li key={x} className="flex gap-3 text-sm leading-relaxed text-slate-700"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white text-xs font-bold text-[#452A73]">{i + 1}</span>{x}</li>)}</ol></aside></div><div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6"><h2 className="font-bold text-slate-950">Accessibility and safety</h2><p className="mt-2 text-sm leading-relaxed text-slate-600">Senior citizens, persons with disabilities, pregnant visitors, and those needing assistance may approach the help desk. Priority support is handled by on-site staff; this website does not assign queue positions.</p></div></>
+  const counters = [
+    { title: 'Reception', text: 'Schedule check and general directions' },
+    { title: 'Document review', text: 'Manual checking by authorized staff' },
+    { title: 'Assistance desk', text: 'Help for seniors, persons with disabilities, and anyone needing assistance' },
+    { title: 'Release area', text: 'Final on-site processing and exit' },
+  ]
+  const arrivalInstructions = [
+    'Enter through the marked reception entrance.',
+    'Have your documents ready, but keep them secure.',
+    'Use priority seating if directed by staff.',
+    'Approach a counter only when called.',
+  ]
+
+  return (
+    <div className="mx-auto max-w-[74rem] space-y-10 pb-10 pt-6 text-[#201a2d] [font-family:Inter,system-ui,sans-serif] sm:space-y-14 sm:pt-10">
+      <div className="grid items-center gap-6 md:grid-cols-[4fr_5fr] md:gap-10">
+        <div>
+          <h1 className="max-w-md font-sans text-[34px] leading-tight font-semibold sm:text-[46px]">Service area and counters</h1>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-[#595367]">A sample layout to show where to go and how to move through the venue.</p>
+        </div>
+        <img src={serviceArea} alt="A visitor signs paperwork at a distribution counter while others wait" className="aspect-[2.35] w-full rounded-xl object-cover" />
+      </div>
+
+      <section aria-labelledby="venue-path">
+        <h2 id="venue-path" className="font-sans text-[28px] leading-tight font-semibold sm:text-[34px]">Your path through the venue</h2>
+        <p className="mt-1 text-sm text-[#595367]">Four sample counters, in the order you’ll usually visit them.</p>
+        <ol role="list" className="mt-6 grid gap-5 md:grid-cols-4 md:gap-0">
+          {counters.map((counter, index) => (
+            <li key={counter.title} className="group grid grid-cols-[2.5rem_1fr] gap-x-3 md:block">
+              <div className="flex items-center md:mb-3">
+                <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-[#54358B] font-sans text-sm font-semibold text-white">{index + 1}</span>
+                <span aria-hidden="true" className="mx-1 hidden flex-1 border-t-2 border-dashed border-[#c7b5e1] md:block md:group-last:hidden" />
+              </div>
+              <div className="md:pr-5">
+                <h3 className="font-sans text-lg leading-tight font-semibold">{counter.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-[#595367]">{counter.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div className="grid items-start gap-7 md:grid-cols-2 md:gap-10">
+        <section aria-labelledby="venue-arrival">
+          <h2 id="venue-arrival" className="font-sans text-[28px] leading-tight font-semibold sm:text-[34px]">When you arrive</h2>
+          <ol role="list" className="mt-4 divide-y divide-[#dedbe6] border-t-2 border-[#595367]">
+            {arrivalInstructions.map((instruction, index) => (
+              <li key={instruction} className="flex gap-4 py-3 text-sm last:border-b last:border-[#dedbe6]">
+                <span aria-hidden="true" className="shrink-0 font-semibold text-[#54358B]">{index + 1}</span>
+                {instruction}
+              </li>
+            ))}
+          </ol>
+        </section>
+        <aside className="rounded-xl bg-[#ece6f5] p-5 sm:p-7" aria-labelledby="venue-accessibility">
+          <h2 id="venue-accessibility" className="font-sans text-xl leading-tight font-semibold">Accessibility and safety</h2>
+          <p className="mt-2 text-sm leading-relaxed">Senior citizens, persons with disabilities, pregnant visitors, and anyone needing assistance may go to the help desk. On-site staff handle priority support.</p>
+          <p className="mt-3 text-sm text-[#54358B]">This website does not assign queue positions.</p>
+        </aside>
+      </div>
+    </div>
+  )
 }
 
+
 function WaitingPage() {
-  return <><PageIntro eyebrow="Planning your visit" title="Estimated waiting time" description="Wait estimates may be shown only when enough reliable historical information is available." /><div className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-5 text-center shadow-sm sm:p-8"><span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 text-slate-500"><Icon name="clock" className="h-8 w-8" /></span><p className="mt-6 text-sm font-bold uppercase tracking-widest text-slate-500">Current estimate</p><h2 className="mt-2 text-3xl font-bold text-slate-950">Estimate unavailable</h2><p className="mx-auto mt-3 max-w-lg leading-7 text-slate-600">There is not enough historical sample data to provide a responsible estimate. Actual waiting times can change based on attendance and manual processing.</p><div className="mt-8 rounded-xl bg-[#F7F4FB] p-5 text-left"><h3 className="font-bold text-[#352054]">Helpful planning tips</h3><ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">{['Arrive within your assigned time window, not hours early.','Prepare documents before entering the reception line.','Allow extra time for travel and accessibility needs.'].map((x) => <li key={x} className="flex gap-2"><Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-[#6F4FA8]" />{x}</li>)}</ul></div></div><p className="mx-auto mt-5 max-w-2xl text-center text-sm text-slate-500">This prototype does not provide live monitoring, queue assignment, or real-time crowd counts.</p></>
+  const tips = [
+    { title: 'Come in your time window', text: 'Turning up hours early rarely gets you seen sooner. Aim for the slot you were given.' },
+    { title: 'Get your documents ready', text: 'Organize them before you join the reception line so they’re easy to find at the counter.' },
+    { title: 'Leave extra time to get here', text: 'Allow extra time for travel, especially if you need step-free access or other support.' },
+  ]
+
+  return (
+    <div className="mx-auto max-w-[69rem] py-6 text-[18px] leading-relaxed text-[#465166] [font-family:Inter,system-ui,sans-serif] sm:py-10 sm:text-[20px]">
+      <div className="max-w-3xl">
+        <h1 className="font-sans text-[34px] leading-[1.15] font-semibold text-[#100f20] sm:text-[50px]">How long will I wait?</h1>
+        <p className="mt-5">We show a wait time when we have enough data from past visits to make a reliable estimate.</p>
+      </div>
+
+      <div className="mt-10 grid items-start gap-9 md:grid-cols-[5fr_6fr] lg:mt-14 lg:gap-14">
+        <section aria-labelledby="wait-status" className="rounded-[1.25rem] border border-slate-200 bg-white p-6 lg:p-9">
+          <span className="grid size-14 place-items-center rounded-xl bg-[#ebeff4] text-[#596984]"><Icon name="clock" className="size-7" /></span>
+          <p className="mt-6 text-[18px] font-medium text-[#596984]">Right now</p>
+          <h2 id="wait-status" className="mt-2 font-sans text-[28px] leading-tight font-semibold text-[#100f20] sm:text-[36px]">We don’t have a wait time yet</h2>
+          <p className="mt-5">There haven’t been enough recorded visits to give a reliable number.</p>
+          <p className="mt-5">Actual waits depend on how many people arrive and how long staff take to process each visit.</p>
+        </section>
+
+        <section aria-labelledby="wait-tips">
+          <h2 id="wait-tips" className="font-sans text-[28px] leading-tight font-semibold text-[#301c60] sm:text-[36px]">Make your visit easier</h2>
+          <p className="mt-3">A few things that help, whatever the queue looks like.</p>
+          <ol role="list" className="mt-6 divide-y divide-[#ded6e7] border-y border-[#ded6e7]">
+            {tips.map((tip, index) => (
+              <li key={tip.title} className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5 sm:gap-6 sm:py-7">
+                <span aria-hidden="true" className="font-sans text-[32px] leading-tight font-semibold text-[#6a469f]">{index + 1}</span>
+                <div>
+                  <h3 className="font-sans text-[24px] leading-tight font-semibold text-[#100f20]">{tip.title}</h3>
+                  <p className="mt-2">{tip.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+
+      <p className="mt-10 text-[18px] text-[#596984] sm:mt-14">Wait estimates are based on past visits and may differ from what you experience on the day.</p>
+    </div>
+  )
 }
+
 
 function AnnouncementsPage({ updatedAt }: { updatedAt?: string }) {
   const [items, setItems] = useState<Announcement[]>([])
@@ -380,13 +595,95 @@ function AnnouncementsPage({ updatedAt }: { updatedAt?: string }) {
     }
   }, [updatedAt])
 
-  return <><PageIntro eyebrow="Public notices" title="Announcements and reminders" description="Review recent fictional updates before visiting a distribution site." />{loading && <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center"><p className="font-bold text-slate-900">Loading announcements…</p><p className="mt-1 text-sm text-slate-600">Please wait while the sample announcements load.</p></div>}{error && <div className="rounded-2xl border border-red-200 bg-red-50 p-10 text-center"><h2 className="font-bold text-red-900">Unable to load announcements</h2><p className="mt-1 text-sm text-red-800">{error}</p></div>}{!loading && !error && !items.length && <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="bell" className="mx-auto h-8 w-8 text-slate-400" /><h2 className="mt-3 font-bold text-slate-900">No announcements available</h2><p className="mt-1 text-sm text-slate-600">There are no sample announcements to display.</p></div>}{!loading && !error && items.length > 0 && <><div className="space-y-4">{items.map((item, i) => <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7"><div className="flex flex-col gap-5 sm:flex-row sm:items-start"><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${i === 0 ? 'bg-[#EDE7F6] text-[#54358B]' : i === 1 ? 'bg-[#EDE7F6] text-[#54358B]' : 'bg-[#8BAF93] text-[#26382A]'}`}><Icon name={i === 0 ? 'calendar' : i === 1 ? 'bell' : 'shield'} /></span><div className="flex-1"><div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#6F4FA8]"><span>{item.type}</span><span className="h-1 w-1 rounded-full bg-slate-300" /><time className="text-slate-500">{item.date}</time></div><h2 className="mt-2 break-words text-xl font-bold text-slate-950">{item.title}</h2><p className="mt-2 whitespace-pre-wrap break-words leading-7 text-slate-600">{item.text}</p></div></div></article>)}</div><div className="mt-6"><Notice>All names, dates, locations, and announcements on this website are fictional sample data for a BSIT-3 project.</Notice></div></>}
-  </>
+  return (
+    <div className="max-w-[74rem] py-6 text-[#201a2d] [font-family:Inter,system-ui,sans-serif] sm:py-10">
+      <h1 className="font-sans text-[34px] leading-tight font-semibold sm:text-[46px]">Announcements and reminders</h1>
+      <p className="mt-3 text-sm leading-relaxed text-slate-600">Please read these before you go to a distribution site.</p>
+
+      <div className="mt-8 space-y-4" aria-live="polite">
+        {loading && <p className="text-sm text-slate-600">Loading announcements…</p>}
+        {error && <p className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">{error}</p>}
+        {!loading && !error && !items.length && <p className="text-sm text-slate-600">No announcements available.</p>}
+        {!loading && !error && items.map((item) => (
+          <article key={item.id} className="grid gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,5fr)] sm:gap-6 sm:p-7">
+            <div className="text-sm">
+              <p className={`font-semibold ${item.type.toLowerCase() === 'advisory' ? 'text-[#286044]' : 'text-[#6a469f]'}`}>{item.type}</p>
+              <time className="mt-1 block text-slate-600">{item.date}</time>
+            </div>
+            <div className="min-w-0">
+              <h2 className="break-words font-sans text-xl leading-tight font-semibold text-slate-950">{item.title}</h2>
+              <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-700">{item.text}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  )
 }
 
+
 function AssistancePage() {
-  return <><PageIntro eyebrow="We are here to guide you" title="Assistance and contact guidance" description="Know where to ask for help and what information to prepare before speaking with a help desk representative." /><div className="mb-6 grid overflow-hidden rounded-2xl border border-[#D8CCE9] bg-[#EDE7F6] shadow-sm sm:grid-cols-[1fr_1.2fr]"><img src={assistanceDesk} alt="Helpful public-service staff member assisting a senior beneficiary at a help desk" className="h-64 w-full object-cover sm:h-full" /><div className="flex items-center p-6 sm:p-8"><div><span className="grid h-12 w-12 place-items-center rounded-xl bg-white text-[#54358B] shadow-sm"><Icon name="help" /></span><h2 className="mt-4 text-xl font-bold text-slate-950">On-site help is available</h2><p className="mt-2 text-sm leading-relaxed text-slate-700">Approach the assistance desk for clear directions and accessibility support during your visit.</p></div></div></div><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"><article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><span className="grid h-12 w-12 place-items-center rounded-xl bg-[#EDE7F6] text-[#54358B]"><Icon name="phone" /></span><h2 className="mt-5 font-bold text-slate-950">Sample hotline</h2><p className="mt-2 text-2xl font-bold text-[#54358B]">(02) 8000-1234</p><p className="mt-2 text-sm text-slate-600">Monday–Friday, 8:00 AM–5:00 PM</p></article><article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><span className="grid h-12 w-12 place-items-center rounded-xl bg-[#EDE7F6] text-[#54358B]"><Icon name="mail" /></span><h2 className="mt-5 font-bold text-slate-950">Sample email</h2><p className="mt-2 break-all text-lg font-bold text-[#54358B]">help@hbd-demo.example</p><p className="mt-2 text-sm text-slate-600">Replies within two sample working days</p></article><article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:col-span-2 lg:col-span-1"><span className="grid h-12 w-12 place-items-center rounded-xl bg-[#EDE7F6] text-[#54358B]"><Icon name="map" /></span><h2 className="mt-5 font-bold text-slate-950">On-site help desk</h2><p className="mt-2 text-sm leading-relaxed text-slate-600">Located near the reception entrance at each sample venue. Look for the blue Assistance Desk sign.</p></article></div><div className="mt-6 grid gap-6 lg:grid-cols-2"><div className="rounded-2xl bg-[#54358B] p-6 text-white sm:p-8"><h2 className="text-xl font-bold">Prepare before contacting us</h2><ul className="mt-5 space-y-3 text-sm leading-relaxed text-[#F3EFF9]">{['Your fictional reference code','Your listed barangay','The date and venue you are asking about','A short, clear description of your concern'].map((x) => <li key={x} className="flex gap-3"><Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-[#C5B6DE]" />{x}</li>)}</ul></div><div className="rounded-2xl border border-[#D8CCE9] bg-[#F7F4FB] p-6 sm:p-8"><Icon name="shield" className="h-7 w-7 text-[#54358B]" /><h2 className="mt-4 text-xl font-bold text-slate-950">Protect your information</h2><p className="mt-2 text-sm leading-relaxed text-slate-700">Do not share passwords, PINs, or banking details. Authorized help desk staff should never ask for payment to check a schedule or provide general guidance.</p></div></div></>
+  const preparationItems = [
+    'Your fictional reference code',
+    'Your listed barangay',
+    'The date and venue you are asking about',
+    'A short, clear description of your concern',
+  ]
+
+  return (
+    <div className="mx-auto max-w-[74rem] py-6 text-[#201a2d] [font-family:Inter,system-ui,sans-serif] sm:py-10">
+      <div className="grid items-center gap-7 md:grid-cols-[minmax(0,2.15fr)_minmax(0,1fr)] lg:gap-12">
+        <div>
+          <h1 className="max-w-xl font-sans text-[34px] leading-tight font-semibold sm:text-[46px]">Assistance and contact guidance</h1>
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-600">Know where to ask for help and what information to prepare before speaking with a help desk representative.</p>
+
+          <dl className="mt-7 divide-y divide-[#ded6e7] border-t-2 border-b border-t-[#54358B] border-b-[#ded6e7] text-sm">
+            <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-3 py-5 sm:grid-cols-[8rem_minmax(0,1fr)]">
+              <dt className="font-semibold">Call</dt>
+              <dd>
+                <p className="font-sans text-2xl leading-tight font-semibold text-[#54358B] sm:text-3xl">(02) 8000-1234</p>
+                <p className="mt-1 text-slate-600">Sample hotline, Monday–Friday, 8:00 AM–5:00 PM</p>
+              </dd>
+            </div>
+            <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-3 py-5 sm:grid-cols-[8rem_minmax(0,1fr)]">
+              <dt className="font-semibold">Email</dt>
+              <dd>
+                <p className="break-words font-sans text-lg font-semibold text-[#54358B] underline underline-offset-4">help@hbd-demo.example</p>
+                <p className="mt-1 text-slate-600">Sample address. Replies within two sample working days.</p>
+              </dd>
+            </div>
+            <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-3 py-5 sm:grid-cols-[8rem_minmax(0,1fr)]">
+              <dt className="font-semibold">Visit</dt>
+              <dd className="leading-relaxed text-slate-600">The help desk is near the reception entrance at each sample venue. <strong className="text-[#201a2d]">Look for the blue Assistance Desk sign.</strong> Staff there can give you clear directions and accessibility support.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <img src={assistanceDesk} alt="A staff member helps older visitors with paperwork at a table" className="aspect-[8/9] w-full max-w-sm rounded-xl object-cover md:max-w-none" />
+      </div>
+
+      <div className="mt-9 grid gap-5 md:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+        <section className="rounded-xl border border-[#ded6e7] bg-white p-5 sm:p-7">
+          <h2 className="font-sans text-2xl leading-tight font-semibold sm:text-[30px]">Prepare before contacting us</h2>
+          <ul role="list" className="mt-5 grid gap-4 text-sm leading-relaxed sm:grid-cols-2">
+            {preparationItems.map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <span aria-hidden="true" className="mt-1.5 size-3.5 shrink-0 border border-slate-300" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <aside className="rounded-xl bg-[#ece6f5] p-5 text-sm leading-relaxed sm:p-7">
+          <h2 className="font-sans text-lg leading-tight font-semibold text-[#352054]">Protect your information</h2>
+          <p className="mt-3"><strong>Do not share passwords, PINs, or banking details.</strong> Authorized help desk staff should never ask for payment to check a schedule or provide general guidance.</p>
+        </aside>
+      </div>
+    </div>
+  )
 }
+
 
 function pageFromHash(): Page | undefined {
   const hash = window.location.hash
@@ -447,21 +744,26 @@ function App() {
   }
 
   return (
-    <div className="distribution-portal flex min-h-dvh flex-col bg-[#F7F8FA] text-slate-800">
+    <div className={`distribution-portal flex min-h-dvh flex-col bg-[#F7F8FA] text-slate-800 ${page === 'home' ? 'portal-home' : ''}`}>
       <a href="#main-content" className="sr-only z-[100] bg-white p-3 font-bold focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to main content</a>
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-        <div className={`mx-auto flex ${contentWidth} items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8`}>
+      <header className="portal-header sticky top-0 z-50 bg-[#f4f5f7]">
+        <div className={`mx-auto flex max-w-[96rem] items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8`}>
           <button onClick={() => goTo('home')} className="flex min-w-0 items-center gap-2 text-left sm:gap-3" aria-label="KAAGAPAY home">
             <img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain sm:size-12" />
             <span className="text-sm font-bold leading-tight text-[#530266] sm:text-base">KAAGAPAY</span>
           </button>
           <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary navigation">
-            {navItems.slice(0, 5).map((item) => <button key={item.id} onClick={() => goTo(item.id)} className={`rounded-lg px-3 py-2 text-sm font-bold transition ${page === item.id ? 'bg-[#EDE7F6] text-[#452A73]' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'}`}>{item.label}</button>)}
-            <div className="group relative"><button className={`rounded-lg px-3 py-2 text-sm font-bold transition ${navItems.slice(5).some((x) => x.id === page) ? 'bg-[#EDE7F6] text-[#452A73]' : 'text-slate-600 hover:bg-slate-100'}`}>More</button><div className="invisible absolute right-0 top-full w-52 translate-y-1 rounded-xl border border-slate-200 bg-white p-2 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">{navItems.slice(5).map((item) => <button key={item.id} onClick={() => goTo(item.id)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-[#F7F4FB] hover:text-[#452A73]"><Icon name={item.icon} className="h-4 w-4" />{item.label}</button>)}</div></div>
+            {navItems.slice(0, 5).map((item) => (
+              <button key={item.id} onClick={() => goTo(item.id)} aria-current={page === item.id ? 'page' : undefined}
+                className="rounded-lg px-3 py-2 text-sm text-[#503386] underline-offset-8 transition hover:underline aria-[current=page]:underline aria-[current=page]:decoration-2">
+                {item.label}
+              </button>
+            ))}
+            <div className="group relative"><button className={`rounded-lg px-3 py-2 text-sm font-bold transition ${navItems.slice(5).some((x) => x.id === page) ? 'text-[#503386] underline decoration-2 underline-offset-8' : 'text-slate-600 hover:text-[#503386]'}`}>More</button><div className="invisible absolute left-0 top-full w-max min-w-56 rounded-xl border border-slate-200 bg-white p-2 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">{navItems.slice(5).map((item) => <button key={item.id} onClick={() => goTo(item.id)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-[#F7F4FB] hover:text-[#452A73]"><Icon name={item.icon} className="size-4 shrink-0" />{item.label}</button>)}</div></div>
           </nav>
           <div className="flex shrink-0 items-center gap-2">
             {!isStaff && <a href="#/staff"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#54358B] px-3 text-sm font-bold whitespace-nowrap text-white hover:bg-[#452A73] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#54358B]"
+              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg bg-[#54358B] px-3 text-sm font-bold text-white hover:bg-[#452A73] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#54358B]"
               onClick={(event) => {
                 if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
                 event.preventDefault()
@@ -473,18 +775,18 @@ function App() {
         {menuOpen && <nav className="max-h-[70vh] overflow-auto border-t border-slate-200 bg-white px-4 py-3 xl:hidden" aria-label="Mobile navigation">{navItems.map((item) => <button key={item.id} onClick={() => goTo(item.id)} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold ${page === item.id ? 'bg-[#EDE7F6] text-[#452A73]' : 'text-slate-700'}`}><Icon name={item.icon} className="h-5 w-5" />{item.label}</button>)}</nav>}
       </header>
 
-      <main id="main-content" className={`mx-auto w-full ${contentWidth} px-4 sm:px-6 lg:px-8 ${isStaff ? 'flex-1 py-10 sm:py-14' : 'py-5 sm:py-7'}`}>
+      <main id="main-content" className={page === 'home' ? 'w-full flex-1 bg-[#f4f5f7]' : `mx-auto w-full ${contentWidth} px-4 sm:px-6 lg:px-8 ${isStaff ? 'flex-1 py-10 sm:py-14' : page === 'process' || page === 'requirements' ? 'flex-1 pt-11 pb-5 sm:pt-[4.25rem] sm:pb-7' : 'flex-1 py-5 sm:py-7'}`}>
         {publicationTime && <p className="mb-4 text-sm font-semibold text-[#452A73]">Published information · Last updated <time dateTime={publicationTime}>{formatTimestamp(publicationTime)}</time></p>}
         {pages[page]}
       </main>
 
-      <footer className={`bg-[#54358B] text-[#F3EFF9] ${isStaff ? "mt-8" : "flex flex-1 flex-col"}`}>
+      <footer className="shrink-0 bg-[#54358B] font-sans text-base text-[#F3EFF9]">
         <div className={`mx-auto grid w-full ${contentWidth} gap-5 px-4 sm:px-6 md:grid-cols-3 lg:px-8 ${isStaff ? "py-10" : "py-6 sm:py-8"}`}>
-          <div><div className="flex items-center gap-3"><img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain" /><p className="font-bold text-[#E9D5FF]">KAAGAPAY</p></div><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">A fictional BSIT-3 project prototype designed to make benefit distribution information easier to access.</p></div>
+          <div><div className="flex items-center gap-3"><img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain" /><p className="font-bold text-[#E9D5FF]">KAAGAPAY</p></div><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">A fictional project prototype designed to make benefit distribution information easier to access.</p></div>
           <div><h2 className="font-bold text-white">Useful links</h2><div className="mt-4 grid gap-2 text-sm"><button onClick={() => goTo('requirements')} className="w-fit hover:text-white hover:underline">Document checklist</button><button onClick={() => goTo('process')} className="w-fit hover:text-white hover:underline">Process guide</button><button onClick={() => goTo('assistance')} className="w-fit hover:text-white hover:underline">Contact assistance</button></div></div>
           <div><h2 className="font-bold text-white">Prototype disclaimer</h2><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">This website does not determine eligibility, verify documents, assign queues, monitor live attendance, or approve benefits.</p></div>
         </div>
-        <div className="mt-auto border-t border-white/10"><div className={`mx-auto flex ${contentWidth} flex-col gap-2 px-4 py-4 text-xs text-[#C9BCE0] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8`}><p>© 2025 KAAGAPAY Student Project</p><p>All data shown is fictional.</p></div></div>
+        <div className="mt-auto border-t border-white/10"><div className={`mx-auto flex ${contentWidth} flex-col gap-2 px-4 py-4 text-xs text-[#C9BCE0] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8`}><p>© 2026 KAAGAPAY </p><p>All data shown is fictional.</p></div></div>
       </footer>
     </div>
   )

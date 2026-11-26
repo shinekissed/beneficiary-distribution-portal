@@ -32,7 +32,7 @@ const initialContent: Content = {
   })),
   process: publishedEntries(processInstructions),
   history: publishedEntries([
-    { barangay: 'Barangay Maligaya', date: '2025-04-10', venue: 'Maligaya Covered Court', minutes: '', notes: 'Fictional sample event. No waiting time was recorded.' },
+    { barangay: 'Barangay Maligaya', date: '2026-11-10', venue: 'Maligaya Covered Court', minutes: '', notes: 'Fictional sample event. No waiting time was recorded.' },
   ]),
 }
 
@@ -57,7 +57,21 @@ export function subscribeToContent(listener: () => void) {
 }
 
 export function readContent(snapshot = getContentSnapshot()): Content {
-  return snapshot === null ? initialContent : JSON.parse(snapshot)
+  if (snapshot === null) return initialContent
+
+  const content: Content = JSON.parse(snapshot)
+  // Update seeded dates in saved snapshots while preserving staff edits and drafts.
+  for (const module of ['schedules', 'announcements', 'history'] as const) {
+    for (const seed of initialContent[module]) {
+      const entry = content[module].find(({ id }) => id === seed.id)
+      const date = seed.published?.values.date
+      if (!entry?.published || entry.published.updatedAt || !date) continue
+
+      const previousDate = date.replace('2026-11-', module === 'history' ? '2025-04-' : '2025-05-')
+      if (entry.published.values.date === previousDate) entry.published.values.date = date
+    }
+  }
+  return content
 }
 
 export function publishedContent(module: Module, content = readContent()) {
