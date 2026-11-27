@@ -17,6 +17,14 @@
 *.ai                 filter=lfs diff=lfs merge=lfs -text
 *.sketch             filter=lfs diff=lfs merge=lfs -text
 
+# Bundle the portal's small runtime images in standard Git so deployment checkouts include them.
+src/assets/kaagapay-logo-transparent.png binary -filter
+src/assets/illustrations/assists.jpg binary -filter
+src/assets/illustrations/old-lady-help.jpg binary -filter
+src/assets/illustrations/requirements.jpg binary -filter
+src/assets/illustrations/service-counter.jpg binary -filter
+src/assets/illustrations/step[1-5].jpg binary -filter
+
 # ---------------------------------------------------------------------------
 # Video
 # ---------------------------------------------------------------------------

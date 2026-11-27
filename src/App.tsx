@@ -267,7 +267,7 @@ function SchedulesPage({ updatedAt }: { updatedAt?: string }) {
     <div className="mx-auto max-w-[74rem] py-6 text-[18px] leading-relaxed text-[#1c1b22] [font-family:Inter,system-ui,sans-serif] sm:text-[20px]">
       <div className="mb-7">
         <h1 className="font-sans text-[34px] leading-[1.15] font-semibold sm:text-[50px]">When is your barangay’s turn?</h1>
-        <p className="mt-3 max-w-[680px] text-[#4b4955]">Search by barangay to see the date, time, and venue. All schedules here are made up for this prototype.</p>
+        <p className="mt-3 max-w-[680px] text-[#4b4955]">Search by barangay to see the date, time, and venue.</p>
       </div>
 
       <div className="grid items-start gap-8 pb-12 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -294,7 +294,7 @@ function SchedulesPage({ updatedAt }: { updatedAt?: string }) {
           {!loading && !error && !filtered.length && (
             <div className="rounded-xl border border-[#dedbe6] bg-white p-6">
               <h2 className="font-sans text-[25px] leading-tight font-semibold">{scheduleItems.length ? 'Nothing matches that' : 'No schedules available'}</h2>
-              <p className="mt-1 text-[#4b4955]">{scheduleItems.length ? 'Try a shorter name, or set the group back to All.' : 'There are no sample schedules to display.'}</p>
+              <p className="mt-1 text-[#4b4955]">{scheduleItems.length ? 'Try a shorter name, or set the group back to All.' : 'There are no schedules to display.'}</p>
             </div>
           )}
           {!loading && !error && Array.from(agenda, ([month, rows]) => (
@@ -326,7 +326,7 @@ function SchedulesPage({ updatedAt }: { updatedAt?: string }) {
               </div>
             </div>
           ))}
-          <p className="mt-5 rounded-lg bg-[#ece6f5] px-5 py-4 text-[18px]">These schedules are fictional and for demonstration only. Always confirm real information with your local office.</p>
+          <p className="mt-5 rounded-lg bg-[#ece6f5] px-5 py-4 text-[18px]">Confirm your distribution schedule with your local office before visiting.</p>
         </section>
       </div>
     </div>
@@ -400,7 +400,7 @@ function LookupPage({ sampleSchedules }: { sampleSchedules: ReturnType<typeof pu
           </div>
 
           <button type="submit" className="mt-4 min-h-12 w-full rounded-lg bg-[#54358B] px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-[#452A73] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#54358B]">Search record</button>
-          <p className="mt-3 text-sm leading-relaxed text-[#595367]">Please don’t type real personal information. This is a college prototype.</p>
+          <p className="mt-3 text-sm leading-relaxed text-[#595367]">Use the example reference code to try the lookup. Keep your personal information private.</p>
         </form>
 
         <section aria-live="polite" aria-label="Record lookup result" className="min-h-64 rounded-xl border border-[#dedbe6] bg-white p-5 sm:p-7">
@@ -443,7 +443,7 @@ function LookupPage({ sampleSchedules }: { sampleSchedules: ReturnType<typeof pu
 
 
 function RequirementsPage({ items, preparationReminders }: { items: typeof requirements; preparationReminders: string[] }) {
-  return <><PageIntro title="Document checklist" titleClassName="font-sans text-[34px] leading-tight font-semibold text-[#201a2d] sm:text-[46px]" description="Prepare these sample requirements ahead of time for a smoother visit to the distribution site." /><div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]"><figure className="overflow-hidden rounded-2xl border border-[#D8CCE9] bg-[#EDE7F6] shadow-sm"><img src={requirementsPhoto} alt="Application forms, a pen, and a wallet" className="h-full min-h-64 w-full object-cover" /></figure><div className="grid gap-4 sm:grid-cols-2">{items.map((item, i) => <article key={i} className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#EDE7F6] font-bold text-[#54358B]">{i + 1}</span><div><h2 className="font-bold text-slate-950">{item.title}</h2><p className="mt-1 text-sm leading-relaxed text-slate-600">{item.text}</p></div></article>)}</div></div><div className="mt-8 grid overflow-hidden rounded-2xl bg-[#54358B] text-white sm:grid-cols-[1fr_220px]"><div className="p-6 sm:p-8"><h2 className="flex items-center gap-3 text-xl font-bold"><Icon name="bell" /> Important reminders</h2><ul className="mt-5 grid gap-3 text-sm leading-relaxed text-[#F3EFF9]">{preparationReminders.map((x, i) => <li key={i} className="flex gap-3"><Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-[#C5B6DE]" />{x}</li>)}</ul></div><img src={requirementsReminderPhoto} alt="" className="hidden h-full w-full object-cover sm:block" /></div><div className="mt-6"><Notice>Requirements may vary in a real program. This checklist is fictional and does not verify or determine eligibility.</Notice></div></>
+  return <><PageIntro title="Document checklist" titleClassName="font-sans text-[34px] leading-tight font-semibold text-[#201a2d] sm:text-[46px]" description="Prepare these documents ahead of time for a smoother visit to the distribution site." /><div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]"><figure className="overflow-hidden rounded-2xl border border-[#D8CCE9] bg-[#EDE7F6] shadow-sm"><img src={requirementsPhoto} alt="Application forms, a pen, and a wallet" className="h-full min-h-64 w-full object-cover" /></figure><div className="grid gap-4 sm:grid-cols-2">{items.map((item, i) => <article key={i} className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#EDE7F6] font-bold text-[#54358B]">{i + 1}</span><div><h2 className="font-bold text-slate-950">{item.title}</h2><p className="mt-1 text-sm leading-relaxed text-slate-600">{item.text}</p></div></article>)}</div></div><div className="mt-8 grid overflow-hidden rounded-2xl bg-[#54358B] text-white sm:grid-cols-[1fr_220px]"><div className="p-6 sm:p-8"><h2 className="flex items-center gap-3 text-xl font-bold"><Icon name="bell" /> Important reminders</h2><ul className="mt-5 grid gap-3 text-sm leading-relaxed text-[#F3EFF9]">{preparationReminders.map((x, i) => <li key={i} className="flex gap-3"><Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-[#C5B6DE]" />{x}</li>)}</ul></div><img src={requirementsReminderPhoto} alt="" className="hidden h-full w-full object-cover sm:block" /></div><div className="mt-6"><Notice>Confirm the required documents with your local office before visiting.</Notice></div></>
 }
 
 const processSteps = [
@@ -624,7 +624,7 @@ function AnnouncementsPage({ updatedAt }: { updatedAt?: string }) {
 
 function AssistancePage() {
   const preparationItems = [
-    'Your fictional reference code',
+    'Your reference code',
     'Your listed barangay',
     'The date and venue you are asking about',
     'A short, clear description of your concern',
@@ -639,22 +639,12 @@ function AssistancePage() {
 
           <dl className="mt-7 divide-y divide-[#ded6e7] border-t-2 border-b border-t-[#54358B] border-b-[#ded6e7] text-sm">
             <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-3 py-5 sm:grid-cols-[8rem_minmax(0,1fr)]">
-              <dt className="font-semibold">Call</dt>
-              <dd>
-                <p className="font-sans text-2xl leading-tight font-semibold text-[#54358B] sm:text-3xl">(02) 8000-1234</p>
-                <p className="mt-1 text-slate-600">Sample hotline, Monday–Friday, 8:00 AM–5:00 PM</p>
-              </dd>
-            </div>
-            <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-3 py-5 sm:grid-cols-[8rem_minmax(0,1fr)]">
-              <dt className="font-semibold">Email</dt>
-              <dd>
-                <p className="break-words font-sans text-lg font-semibold text-[#54358B] underline underline-offset-4">help@hbd-demo.example</p>
-                <p className="mt-1 text-slate-600">Sample address. Replies within two sample working days.</p>
-              </dd>
+              <dt className="font-semibold">Contact</dt>
+              <dd className="leading-relaxed text-slate-600">Use your local office’s official contact details to confirm the distribution schedule, ask about requirements, or request accessibility support.</dd>
             </div>
             <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-3 py-5 sm:grid-cols-[8rem_minmax(0,1fr)]">
               <dt className="font-semibold">Visit</dt>
-              <dd className="leading-relaxed text-slate-600">The help desk is near the reception entrance at each sample venue. <strong className="text-[#201a2d]">Look for the blue Assistance Desk sign.</strong> Staff there can give you clear directions and accessibility support.</dd>
+              <dd className="leading-relaxed text-slate-600">Ask venue staff where to get help with directions or accessibility when you arrive.</dd>
             </div>
           </dl>
         </div>
@@ -664,7 +654,7 @@ function AssistancePage() {
 
       <div className="mt-9 grid gap-5 md:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <section className="rounded-xl border border-[#ded6e7] bg-white p-5 sm:p-7">
-          <h2 className="font-sans text-2xl leading-tight font-semibold sm:text-[30px]">Prepare before contacting us</h2>
+          <h2 className="font-sans text-2xl leading-tight font-semibold sm:text-[30px]">What to have ready</h2>
           <ul role="list" className="mt-5 grid gap-4 text-sm leading-relaxed sm:grid-cols-2">
             {preparationItems.map((item) => (
               <li key={item} className="flex items-start gap-3">
@@ -784,11 +774,11 @@ function App() {
 
       <footer className="shrink-0 bg-[#54358B] font-sans text-base text-[#F3EFF9]">
         <div className={`mx-auto grid w-full ${contentWidth} gap-5 px-4 sm:px-6 md:grid-cols-3 lg:px-8 ${isStaff ? "py-10" : "py-6 sm:py-8"}`}>
-          <div><div className="flex items-center gap-3"><img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain brightness-0 invert" /><p className="font-bold text-[#E9D5FF]">KAAGAPAY</p></div><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">A fictional project prototype designed to make benefit distribution information easier to access.</p></div>
+          <div><div className="flex items-center gap-3"><img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain brightness-0 invert" /><p className="font-bold text-[#E9D5FF]">KAAGAPAY</p></div><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">Find benefit distribution schedules, document requirements, and assistance information.</p></div>
           <div><h2 className="font-bold text-white">Useful links</h2><div className="mt-4 grid gap-2 text-sm"><button onClick={() => goTo('requirements')} className="w-fit hover:text-white hover:underline">Document checklist</button><button onClick={() => goTo('process')} className="w-fit hover:text-white hover:underline">Process guide</button><button onClick={() => goTo('assistance')} className="w-fit hover:text-white hover:underline">Contact assistance</button></div></div>
-          <div><h2 className="font-bold text-white">Prototype disclaimer</h2><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">This website does not determine eligibility, verify documents, assign queues, monitor live attendance, or approve benefits.</p></div>
+          <div><h2 className="font-bold text-white">About the portal</h2><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">This website does not determine eligibility, verify documents, assign queues, monitor live attendance, or approve benefits.</p></div>
         </div>
-        <div className="mt-auto border-t border-white/10"><div className={`mx-auto flex ${contentWidth} flex-col gap-2 px-4 py-4 text-xs text-[#C9BCE0] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8`}><p>© 2026 KAAGAPAY </p><p>All data shown is fictional.</p></div></div>
+        <div className="mt-auto border-t border-white/10"><div className={`mx-auto flex ${contentWidth} flex-col gap-2 px-4 py-4 text-xs text-[#C9BCE0] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8`}><p>© 2026 KAAGAPAY </p></div></div>
       </footer>
     </div>
   )

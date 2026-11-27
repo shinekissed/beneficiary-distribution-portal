@@ -43,7 +43,7 @@ const modules: Record<Module, { label: string; title: string; add?: string; prin
     fields: [
       { name: 'barangay', label: 'Barangay' }, { name: 'date', label: 'Past distribution date', type: 'date' },
       { name: 'venue', label: 'Venue' }, { name: 'minutes', label: 'Recorded wait in minutes (optional)', type: 'number', optional: true },
-      { name: 'notes', label: 'Fictional record notes', type: 'textarea' },
+      { name: 'notes', label: 'Record notes', type: 'textarea' },
     ],
   },
 }
@@ -197,7 +197,7 @@ function StaffDashboard({ role, onLogout, headerTarget }: { role: Role; onLogout
     try {
       updateContent(next, role, entry, command)
       const messages = {
-        save: next === 'history' ? 'Fictional historical record saved.' : command.action === 'save' && command.submit ? 'Submitted for review.' : 'Draft saved.',
+        save: next === 'history' ? 'Historical record saved.' : command.action === 'save' && command.submit ? 'Submitted for review.' : 'Draft saved.',
         return: 'Returned to the editor for correction.',
         approve: 'Approved and ready to publish.',
         publish: `Published to the beneficiary website. Please update the corresponding ${modules[next].print}.`,
@@ -249,7 +249,7 @@ function StaffDashboard({ role, onLogout, headerTarget }: { role: Role; onLogout
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 id="staff-heading" ref={heading} tabIndex={-1} className="text-3xl font-bold tracking-tight text-slate-950">{config?.label ?? 'Staff dashboard'}</h1>
-            <p className="mt-2 max-w-2xl text-slate-700">{module === 'schedules' ? 'Published schedules appear on the public Schedules page. Save changes as a working copy, then send them for review.' : module === 'history' ? 'Staff-only fictional records. The public estimate stays unavailable until reliable historical information exists.' : config ? 'Review the sample information here before publishing updates.' : 'Manage fictional distribution information and check what is ready for review or publication.'}</p>
+            <p className="mt-2 max-w-2xl text-slate-700">{module === 'schedules' ? 'Published schedules appear on the public Schedules page. Save changes as a working copy, then send them for review.' : module === 'history' ? 'Staff-only historical records. The public estimate stays unavailable until reliable historical information exists.' : config ? 'Review the sample information here before publishing updates.' : 'Manage distribution information and check what is ready for review or publication.'}</p>
           </div>
           {config?.add && !editing && <button className={primary} onClick={() => { setEditing({}); setFeedback(null) }}>{config.add}</button>}
         </div>

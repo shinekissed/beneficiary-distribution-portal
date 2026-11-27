@@ -32,7 +32,7 @@ const initialContent: Content = {
   })),
   process: publishedEntries(processInstructions),
   history: publishedEntries([
-    { barangay: 'Barangay Maligaya', date: '2026-11-10', venue: 'Maligaya Covered Court', minutes: '', notes: 'Fictional sample event. No waiting time was recorded.' },
+    { barangay: 'Barangay Maligaya', date: '2026-11-10', venue: 'Maligaya Covered Court', minutes: '', notes: 'No waiting time was recorded.' },
   ]),
 }
 
@@ -60,15 +60,32 @@ export function readContent(snapshot = getContentSnapshot()): Content {
   if (snapshot === null) return initialContent
 
   const content: Content = JSON.parse(snapshot)
-  // Update seeded dates in saved snapshots while preserving staff edits and drafts.
-  for (const module of ['schedules', 'announcements', 'history'] as const) {
+  // Refresh older seeded values while preserving staff edits and drafts.
+  for (const module of ['schedules', 'announcements', 'history', 'reminders'] as const) {
     for (const seed of initialContent[module]) {
       const entry = content[module].find(({ id }) => id === seed.id)
       const date = seed.published?.values.date
-      if (!entry?.published || entry.published.updatedAt || !date) continue
+      if (!entry?.published || entry.published.updatedAt || !seed.published) continue
 
-      const previousDate = date.replace('2026-11-', module === 'history' ? '2025-04-' : '2025-05-')
-      if (entry.published.values.date === previousDate) entry.published.values.date = date
+      const { values } = entry.published
+      const current = seed.published.values
+      if (date) {
+        const previousDate = date.replace('2026-11-', module === 'history' ? '2025-04-' : '2025-05-')
+        if (values.date === previousDate) values.date = date
+      }
+      if (module === 'history' && values.notes === 'Fictional sample event. No waiting time was recorded.') {
+        values.notes = current.notes
+      }
+      if (module === 'reminders' && values.text === 'There is no fee for checking information in this prototype.') {
+        values.text = current.text
+      }
+      if (module === 'announcements' && (
+        values.text === 'The sample distribution is at the Mabini Elementary School Gym. Please use the east gate.' ||
+        values.text === 'This fictional program doesn’t charge any processing fee. If someone asks you to pay, tell the help desk.'
+      )) {
+        values.title = current.title
+        values.text = current.text
+      }
     }
   }
   return content
