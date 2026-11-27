@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 import { API_CONFIG } from './api/config'
 import {
@@ -9,11 +10,13 @@ type Field = { name: string; label: string; type?: 'date' | 'number' | 'textarea
 
 const modules: Record<Module, { label: string; title: string; add?: string; print?: string; fields: Field[] }> = {
   schedules: {
-    label: 'Distribution schedules', title: 'barangay', add: 'Add schedule', print: 'schedule boards and printed schedules',
+    label: 'Distribution schedules', title: 'barangay', add: 'Add a schedule', print: 'schedule boards and printed schedules',
     fields: [
       { name: 'barangay', label: 'Barangay' }, { name: 'date', label: 'Distribution date', type: 'date' },
       { name: 'time', label: 'Time window (e.g., 8:00 AM to 12:00 PM)' },
-      { name: 'venue', label: 'Venue' }, { name: 'group', label: 'Beneficiary group' },
+      { name: 'venue', label: 'Place' }, { name: 'group', label: 'Who should come' },
+      { name: 'aidType', label: 'Type of aid', optional: true },
+      { name: 'notes', label: 'Note for beneficiaries', type: 'textarea', optional: true },
     ],
   },
   requirements: {
@@ -61,19 +64,19 @@ function StaffLogin({ onLogin }: { onLogin: (role: Role) => void }) {
     if ((username === 'editor' || username === 'approver') && data.get('password') === 'hci-demo') {
       onLogin(username)
     } else {
-      setError('The username or password is incorrect. Try again or check the demo accounts below.')
+      setError('The username or password is incorrect. Please try again.')
     }
   }
 
   return (
-    <section aria-labelledby="staff-sign-in" className="mx-auto grid max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white md:max-w-5xl md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] xl:max-w-6xl">
-      <header className="border-b border-[#D8CCE9] bg-[#F3EFF9] p-5 sm:p-7 md:border-r md:border-b-0 md:p-9">
+    <section aria-labelledby="staff-sign-in" className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-9">
+      <header className="mb-7">
         <h1 id="staff-sign-in" className="text-[1.75rem] leading-tight font-bold text-[#352054] sm:text-[2rem]">Staff sign in</h1>
-        <p className="mt-3 max-w-xs text-base leading-relaxed text-slate-800 sm:text-lg">
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">
           Sign in to manage schedules, requirements, announcements, and process instructions.
         </p>
       </header>
-      <div className="min-w-0 p-5 sm:p-7 md:p-9">
+      <div className="min-w-0">
         <form className="space-y-4" onSubmit={login} onChange={() => { if (error) setError('') }}>
           <div>
             <label htmlFor="staff-username" className="block text-base font-semibold text-slate-900">Username</label>
@@ -91,14 +94,6 @@ function StaffLogin({ onLogin }: { onLogin: (role: Role) => void }) {
           {error && <p role="alert" className="text-base leading-relaxed text-red-800">{error}</p>}
           <button type="submit" className={`w-full text-lg ${primary}`}>Sign in</button>
         </form>
-        <details className="mt-5 border-t border-slate-200 pt-2 text-base leading-relaxed">
-          <summary className="min-h-11 cursor-pointer rounded-sm py-3 font-semibold text-[#452A73] focus-visible:outline-2 focus-visible:outline-offset-2">Demo accounts</summary>
-          <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 pb-1 text-slate-700">
-            <dt>Editor username</dt><dd><code>editor</code></dd>
-            <dt>Approver username</dt><dd><code>approver</code></dd>
-            <dt>Shared password</dt><dd><code>hci-demo</code></dd>
-          </dl>
-        </details>
       </div>
     </section>
   )
@@ -183,7 +178,7 @@ function ContentCard({ module, entry, role, onEdit, onUpdate }: {
   )
 }
 
-function StaffDashboard({ role, onLogout }: { role: Role; onLogout: () => void }) {
+function StaffDashboard({ role, onLogout, headerTarget }: { role: Role; onLogout: () => void; headerTarget: HTMLDivElement | null }) {
   const snapshot = useSyncExternalStore(subscribeToContent, getContentSnapshot)
   const content = readContent(snapshot)
   const [module, setModule] = useState<Module | null>(null)
@@ -222,22 +217,39 @@ function StaffDashboard({ role, onLogout }: { role: Role; onLogout: () => void }
       ? [{ key, entry, revision: entry.revision }] : []))
 
   return (
-    <div className="grid min-w-0 gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)]">
-      <aside className={`self-start ${card}`}>
-        <p className="text-sm font-bold text-[#54358B]">Demonstration account</p>
-        <p className="mt-1 text-lg font-bold">{role === 'editor' ? 'Content editor' : 'Content approver'}</p>
-        <nav aria-label="Staff modules" className="my-4 flex flex-wrap gap-1 lg:grid">
-          {[null, ...moduleKeys].map((key) => <button key={key ?? 'dashboard'} aria-current={key === module ? 'page' : undefined}
-            className={`min-h-11 rounded-lg px-3 py-2 text-left text-sm font-semibold hover:bg-[#F7F4FB] ${key === module ? 'bg-[#EDE7F6] text-[#452A73]' : ''}`}
-            onClick={() => navigate(key)}>{key ? modules[key].label : 'Dashboard'}</button>)}
+    <div className="mx-auto grid max-w-[77.5rem] min-w-0 gap-7">
+      {headerTarget && createPortal(<div className="staff-header-controls flex min-w-0 flex-1 items-center justify-end gap-2">
+        <nav aria-label="Staff modules" className="flex items-center gap-1 md:absolute md:left-1/2 md:-translate-x-1/2">
+          {([null, 'schedules', 'requirements', 'reminders'] as const).map((key) => (
+            <button key={key ?? 'dashboard'} aria-current={key === module ? 'page' : undefined}
+              className={`hidden min-h-11 whitespace-nowrap rounded-lg px-3 py-2 text-[#503386] underline-offset-8 hover:underline aria-[current=page]:underline aria-[current=page]:decoration-2 ${key === 'requirements' || key === 'reminders' ? 'lg:block' : 'md:block'}`}
+              onClick={() => navigate(key)}>{key === 'schedules' ? 'Schedules' : key ? modules[key].label : 'Dashboard'}</button>
+          ))}
+          <details className="relative">
+            <summary className={`flex min-h-11 cursor-pointer list-none items-center rounded-lg px-3 py-2 text-[18px] font-medium text-slate-600 underline-offset-8 hover:text-[#503386] [&::-webkit-details-marker]:hidden ${module === 'requirements' || module === 'reminders' ? 'text-[#503386] underline decoration-2 lg:no-underline' : module && module !== 'schedules' ? 'text-[#503386] underline decoration-2' : ''}`}>More</summary>
+            <div className="absolute right-0 top-full z-10 grid max-h-[70dvh] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-lg max-md:-right-16">
+              {[null, ...moduleKeys].map((key) => (
+                <button key={key ?? 'dashboard'} aria-current={key === module ? 'page' : undefined}
+                  className={`min-h-11 rounded-lg px-3 py-2 text-left hover:bg-[#F7F4FB] aria-[current=page]:bg-[#EDE7F6] aria-[current=page]:text-[#452A73] ${key === null || key === 'schedules' ? 'md:hidden' : key === 'requirements' || key === 'reminders' ? 'lg:hidden' : ''}`}
+                  onClick={(event) => {
+                    const details = event.currentTarget.closest('details')
+                    details?.querySelector('summary')?.focus()
+                    details?.removeAttribute('open')
+                    navigate(key)
+                  }}>{key === 'schedules' ? 'Schedules' : key === 'history' ? 'Records' : key ? modules[key].label : 'Dashboard'}</button>
+              ))}
+            </div>
+          </details>
         </nav>
-        <button className={secondary} onClick={onLogout}>Sign out</button>
-      </aside>
+        <button className={`shrink-0 whitespace-nowrap ${secondary}`} onClick={onLogout}>Sign out</button>
+      </div>, headerTarget)}
+
       <section className="min-w-0 space-y-5" aria-labelledby="staff-heading">
+        {module === 'schedules' && editing && <button className="font-semibold text-[#452A73] underline underline-offset-4" onClick={() => navigate('schedules')}>Back to the list</button>}
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 id="staff-heading" ref={heading} tabIndex={-1} className="text-3xl font-bold tracking-tight text-slate-950">{config?.label ?? 'Staff dashboard'}</h1>
-            <p className="mt-2 max-w-2xl text-slate-700">{module === 'history' ? 'Staff-only fictional records. The public estimate stays unavailable until reliable historical information exists.' : config ? 'Review the sample information here before publishing updates.' : 'Manage fictional distribution information and check what is ready for review or publication.'}</p>
+            <p className="mt-2 max-w-2xl text-slate-700">{module === 'schedules' ? 'Published schedules appear on the public Schedules page. Save changes as a working copy, then send them for review.' : module === 'history' ? 'Staff-only fictional records. The public estimate stays unavailable until reliable historical information exists.' : config ? 'Review the sample information here before publishing updates.' : 'Manage fictional distribution information and check what is ready for review or publication.'}</p>
           </div>
           {config?.add && !editing && <button className={primary} onClick={() => { setEditing({}); setFeedback(null) }}>{config.add}</button>}
         </div>
@@ -266,7 +278,7 @@ function StaffDashboard({ role, onLogout }: { role: Role; onLogout: () => void }
           </div>
         </>}
         {module && config && editing && (
-          <form className={`space-y-4 ${card}`} onSubmit={(event) => {
+          <form className={module === 'schedules' ? 'max-w-3xl space-y-4' : `space-y-4 ${card}`} onSubmit={(event) => {
             event.preventDefault()
             const submitter = (event.nativeEvent as SubmitEvent).submitter
             const data = new FormData(event.currentTarget)
@@ -296,13 +308,46 @@ function StaffDashboard({ role, onLogout }: { role: Role; onLogout: () => void }
               })}
             </div>
             <div className="flex flex-wrap gap-2">
-              <button type="submit" className={module === 'history' ? primary : secondary}>{module === 'history' ? 'Save historical record' : 'Save draft'}</button>
-              {module !== 'history' && <button type="submit" value="review" className={primary}>Submit for review</button>}
+              <button type="submit" className={module === 'history' ? primary : secondary}>{module === 'history' ? 'Save historical record' : module === 'schedules' ? 'Save working copy' : 'Save draft'}</button>
+              {module !== 'history' && <button type="submit" value="review" className={primary}>{module === 'schedules' ? 'Send for review' : 'Submit for review'}</button>}
               <button type="button" className={secondary} onClick={() => { setEditing(null); setFeedback(null); heading.current?.focus() }}>Cancel</button>
             </div>
           </form>
         )}
-        {module && !editing && <div className="space-y-4">
+        {module === 'schedules' && role === 'editor' && !editing && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">{items.length} {items.length === 1 ? 'schedule' : 'schedules'}</p>
+            <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white" role="region" aria-label="Distribution schedules table" tabIndex={0}>
+              <table className="w-full min-w-[43rem] text-left text-sm">
+                <thead className="border-b-2 border-slate-200 bg-[#faf9fc] text-slate-600">
+                  <tr>{['Date', 'Schedule', 'Place and time', 'Status', 'Action'].map((label) => <th key={label} scope="col" className="px-4 py-3">{label}</th>)}</tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {items.map((entry) => {
+                    const values = (entry.revision ?? entry.published)?.values
+                    if (!values) return null
+                    const editable = !entry.revision || ['Draft', 'Returned for correction'].includes(entry.revision.stage)
+                    return (
+                      <tr key={entry.id} className="align-top">
+                        <td className="px-4 py-4">{formatDate(values.date)}</td>
+                        <td className="px-4 py-4"><strong className="block">{values.barangay}</strong><span className="text-slate-600">{[values.aidType, values.group].filter(Boolean).join(' · ')}</span></td>
+                        <td className="px-4 py-4"><span className="block">{values.venue}</span><span className="text-slate-600">{values.time}</span></td>
+                        <td className="px-4 py-4 font-semibold text-[#54358B]">{statusFor('schedules', entry)}</td>
+                        <td className="px-4 py-4">{editable && <button className="font-semibold text-[#452A73] underline underline-offset-4" onClick={() => { setEditing({ entry }); setFeedback(null); heading.current?.focus() }}>Edit<span className="sr-only"> {values.barangay}</span></button>}</td>
+                      </tr>
+                    )
+                  })}
+                  {!items.length && <tr><td colSpan={5} className="px-4 py-4">No schedules are available yet.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+            <section className={card}>
+              <h2 className="text-lg font-semibold">Review and publication</h2>
+              <p className="mt-1 text-sm text-slate-600">An approver reviews and publishes working copies before they appear on the public Schedules page.</p>
+            </section>
+          </div>
+        )}
+        {module && !editing && !(module === 'schedules' && role === 'editor') && <div className="space-y-4">
           {items.length === 0 && <p className={card}>No records are available yet.</p>}
           {items.map((entry) => <ContentCard key={`${module}-${entry.id}-${entry.revision?.updatedAt ?? entry.published?.updatedAt ?? 'original'}`} module={module} entry={entry} role={role}
             onEdit={() => { setEditing({ entry }); setFeedback(null); heading.current?.focus() }}
@@ -313,7 +358,7 @@ function StaffDashboard({ role, onLogout }: { role: Role; onLogout: () => void }
   )
 }
 
-export default function StaffArea() {
+export default function StaffArea({ headerTarget }: { headerTarget: HTMLDivElement | null }) {
   const [role, setRole] = useState<Role | null>(() => {
     try {
       const saved = sessionStorage.getItem('hbdis-demo-role')
@@ -334,5 +379,5 @@ export default function StaffArea() {
   }
 
   if (!API_CONFIG.USE_MOCK_DATA) return <div className={card}><h1 className="text-xl font-bold">Staff demo unavailable</h1><p className="mt-2">The staff demo requires mock data mode. A staff API is needed for server-backed management.</p></div>
-  return role ? <StaffDashboard role={role} onLogout={() => changeRole(null)} /> : <StaffLogin onLogin={changeRole} />
+  return role ? <StaffDashboard headerTarget={headerTarget} role={role} onLogout={() => changeRole(null)} /> : <StaffLogin onLogin={changeRole} />
 }
