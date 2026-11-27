@@ -49,6 +49,10 @@ export async function getSchedules(barangay?: string): Promise<Schedule[]> {
       time: values.time,
       venue: values.venue,
       group: values.group,
+      aidType: values.aidType,
+      notes: values.notes,
+      aidType: values.aidType,
+      notes: values.notes,
     }))
     return query ? schedules.filter((schedule) => schedule.barangay.toLowerCase().includes(query)) : schedules
   }

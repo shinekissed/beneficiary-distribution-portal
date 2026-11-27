@@ -142,3 +142,13 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.portal-header:has(.staff-header-controls) .public-header-controls {
+  display: none;
+}
+
+@media (width < 24rem) {
+  .portal-header:has(.staff-header-controls) [aria-label="KAAGAPAY home"] span {
+    display: none;
+  }
+}

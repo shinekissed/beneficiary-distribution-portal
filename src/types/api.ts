@@ -6,6 +6,10 @@ export interface Schedule {
   time: string
   venue: string
   group: string
+  aidType?: string
+  notes?: string
+  aidType?: string
+  notes?: string
 }
 
 export interface BeneficiaryLookupRequest {

@@ -1,6 +1,6 @@
 import { FormEvent, ReactNode, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import heroWelcome from './assets/illustrations/old-lady-help.jpg'
-import kaagapayLogo from './assets/kaagapay-logo.png'
+import kaagapayLogo from './assets/kaagapay-logo-transparent.png'
 import requirementsPhoto from './assets/illustrations/submit-requirements.avif'
 import requirementsReminderPhoto from './assets/illustrations/requirements.jpg'
 import serviceArea from './assets/illustrations/service-counter.jpg'
@@ -303,7 +303,7 @@ function SchedulesPage({ updatedAt }: { updatedAt?: string }) {
               <div tabIndex={0} role="region" aria-label={`${month} schedule table`} className="overflow-x-auto rounded-xl border border-[#dedbe6] bg-white">
                 <table className="w-full min-w-[39rem] text-left text-[18px]">
                   <thead className="border-b border-[#dedbe6] bg-[#faf9fc] font-sans text-[#4b4955]">
-                    <tr>{['Date', 'Barangay and venue', 'Time', 'Group'].map((label) => <th key={label} scope="col" className="px-4 py-3 font-medium">{label}</th>)}</tr>
+                    <tr>{['Date', 'Schedule', 'Place and time', 'Status'].map((label) => <th key={label} scope="col" className="px-4 py-3 font-medium">{label}</th>)}</tr>
                   </thead>
                   <tbody className="divide-y divide-[#dedbe6]">
                     {rows.map((item) => (
@@ -697,6 +697,7 @@ function App() {
   const contentSnapshot = useSyncExternalStore(subscribeToContent, getContentSnapshot)
   const content = API_CONFIG.USE_MOCK_DATA ? readContent(contentSnapshot) : readContent(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [staffHeader, setStaffHeader] = useState<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const sync = () => {
@@ -740,7 +741,7 @@ function App() {
       preparationReminders={publishedContent('reminders', content).map(({ values }) => values.text)} />,
     process: <ProcessPage steps={publishedContent('process', content).map(({ values }) => ({ title: values.title, text: values.text }))} />,
     service: <ServicePage />, waiting: <WaitingPage />, announcements: <AnnouncementsPage updatedAt={announcementUpdate} />,
-    assistance: <AssistancePage />, staff: <StaffArea />,
+    assistance: <AssistancePage />, staff: <StaffArea headerTarget={staffHeader} />,
   }
 
   return (
@@ -752,7 +753,7 @@ function App() {
             <img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain sm:size-12" />
             <span className="text-sm font-bold leading-tight text-[#530266] sm:text-base">KAAGAPAY</span>
           </button>
-          <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary navigation">
+          <nav className="public-header-controls hidden items-center gap-1 xl:flex" aria-label="Primary navigation">
             {navItems.slice(0, 5).map((item) => (
               <button key={item.id} onClick={() => goTo(item.id)} aria-current={page === item.id ? 'page' : undefined}
                 className="rounded-lg px-3 py-2 text-sm text-[#503386] underline-offset-8 transition hover:underline aria-[current=page]:underline aria-[current=page]:decoration-2">
@@ -761,7 +762,8 @@ function App() {
             ))}
             <div className="group relative"><button className={`rounded-lg px-3 py-2 text-sm font-bold transition ${navItems.slice(5).some((x) => x.id === page) ? 'text-[#503386] underline decoration-2 underline-offset-8' : 'text-slate-600 hover:text-[#503386]'}`}>More</button><div className="invisible absolute left-0 top-full w-max min-w-56 rounded-xl border border-slate-200 bg-white p-2 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">{navItems.slice(5).map((item) => <button key={item.id} onClick={() => goTo(item.id)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-[#F7F4FB] hover:text-[#452A73]"><Icon name={item.icon} className="size-4 shrink-0" />{item.label}</button>)}</div></div>
           </nav>
-          <div className="flex shrink-0 items-center gap-2">
+          {isStaff && <div ref={setStaffHeader} className="contents" />}
+          <div className="public-header-controls flex shrink-0 items-center gap-2">
             {!isStaff && <a href="#/staff"
               className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg bg-[#54358B] px-3 text-sm font-bold text-white hover:bg-[#452A73] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#54358B]"
               onClick={(event) => {
@@ -772,7 +774,7 @@ function App() {
             <button onClick={() => setMenuOpen(!menuOpen)} className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 text-slate-800 xl:hidden" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen}><Icon name={menuOpen ? 'close' : 'menu'} /></button>
           </div>
         </div>
-        {menuOpen && <nav className="max-h-[70vh] overflow-auto border-t border-slate-200 bg-white px-4 py-3 xl:hidden" aria-label="Mobile navigation">{navItems.map((item) => <button key={item.id} onClick={() => goTo(item.id)} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold ${page === item.id ? 'bg-[#EDE7F6] text-[#452A73]' : 'text-slate-700'}`}><Icon name={item.icon} className="h-5 w-5" />{item.label}</button>)}</nav>}
+        {menuOpen && <nav className="public-header-controls max-h-[70vh] overflow-auto border-t border-slate-200 bg-white px-4 py-3 xl:hidden" aria-label="Mobile navigation">{navItems.map((item) => <button key={item.id} onClick={() => goTo(item.id)} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold ${page === item.id ? 'bg-[#EDE7F6] text-[#452A73]' : 'text-slate-700'}`}><Icon name={item.icon} className="h-5 w-5" />{item.label}</button>)}</nav>}
       </header>
 
       <main id="main-content" className={page === 'home' ? 'w-full flex-1 bg-[#f4f5f7]' : `mx-auto w-full ${contentWidth} px-4 sm:px-6 lg:px-8 ${isStaff ? 'flex-1 py-10 sm:py-14' : page === 'process' || page === 'requirements' ? 'flex-1 pt-11 pb-5 sm:pt-[4.25rem] sm:pb-7' : 'flex-1 py-5 sm:py-7'}`}>
@@ -782,7 +784,7 @@ function App() {
 
       <footer className="shrink-0 bg-[#54358B] font-sans text-base text-[#F3EFF9]">
         <div className={`mx-auto grid w-full ${contentWidth} gap-5 px-4 sm:px-6 md:grid-cols-3 lg:px-8 ${isStaff ? "py-10" : "py-6 sm:py-8"}`}>
-          <div><div className="flex items-center gap-3"><img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain" /><p className="font-bold text-[#E9D5FF]">KAAGAPAY</p></div><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">A fictional project prototype designed to make benefit distribution information easier to access.</p></div>
+          <div><div className="flex items-center gap-3"><img src={kaagapayLogo} alt="" className="size-10 shrink-0 object-contain brightness-0 invert" /><p className="font-bold text-[#E9D5FF]">KAAGAPAY</p></div><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">A fictional project prototype designed to make benefit distribution information easier to access.</p></div>
           <div><h2 className="font-bold text-white">Useful links</h2><div className="mt-4 grid gap-2 text-sm"><button onClick={() => goTo('requirements')} className="w-fit hover:text-white hover:underline">Document checklist</button><button onClick={() => goTo('process')} className="w-fit hover:text-white hover:underline">Process guide</button><button onClick={() => goTo('assistance')} className="w-fit hover:text-white hover:underline">Contact assistance</button></div></div>
           <div><h2 className="font-bold text-white">Prototype disclaimer</h2><p className="mt-4 text-sm leading-relaxed text-[#DED4ED]">This website does not determine eligibility, verify documents, assign queues, monitor live attendance, or approve benefits.</p></div>
         </div>
