@@ -1,6 +1,6 @@
 {
   "title": "KAAGAPAY",
-  "description": "Helps beneficiaries find distribution schedules, check sample lookup results, review requirements, and understand service procedures and assistance options.",
+  "description": "Helps beneficiaries find distribution schedules, look up a reference code, review requirements, and understand service procedures and assistance options.",
   "robots": {
     "index": false
   },

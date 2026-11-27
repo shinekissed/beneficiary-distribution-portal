@@ -9,7 +9,7 @@ export const reminders = [
   'Bring original documents; do not leave them with unauthorized persons.',
   'Arrive only within your stated schedule to avoid crowding.',
   'Bring water and any personal medication you may need.',
-  'There is no fee for checking information in this prototype.',
+  'You can check information on this portal for free.',
 ]
 
 export const processInstructions = [

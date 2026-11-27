@@ -8,9 +8,9 @@ export const schedules = [
 ]
 
 export const announcements = [
-  { id: 1, type: 'Schedule update', date: 'November 8, 2026', title: 'Barangay Mabini venue confirmed', text: 'The sample distribution is at the Mabini Elementary School Gym. Please use the east gate.' },
+  { id: 1, type: 'Schedule update', date: 'November 8, 2026', title: 'Barangay Mabini venue confirmed', text: 'The distribution is at the Mabini Elementary School Gym. Please use the east gate.' },
   { id: 2, type: 'Reminder', date: 'November 6, 2026', title: 'Bring your original documents', text: 'Bring your original valid ID and your reference slip. The validation desk may ask for photocopies too.' },
-  { id: 3, type: 'Advisory', date: 'November 2, 2026', title: 'No fee is required', text: 'This fictional program doesn’t charge any processing fee. If someone asks you to pay, tell the help desk.' },
+  { id: 3, type: 'Advisory', date: 'November 2, 2026', title: 'Report payment requests', text: 'If someone asks you to pay to check a schedule or get general guidance, tell the help desk.' },
 ]
 
 export const beneficiaryLookupRecord: BeneficiaryLookupResponse = {
